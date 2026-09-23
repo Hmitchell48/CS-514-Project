@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product overview | CourtConnect</title>
+  <meta name="description" content="How CourtConnect works, the booking rules, and the database behind it.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="5" width="28" height="20" rx="2" fill="#b8132f"/><g fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5v20"/><circle cx="15" cy="15" r="4"/><path d="M1 10h5v10H1M29 10h-5v10h5"/></g></svg>
+        CourtConnect
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="overview.html" aria-current="page">Product overview</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="source.html">Source code</a></li>
+          <li><a href="technical.html">Technical doc</a></li>
+          <li><a href="presentation.html">Presentation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="wrap">
+        <p class="crumb"><a href="index.html">Home</a> / Product overview</p>
+        <h1>Product overview &amp; instructions</h1>
+        <p class="lede">What CourtConnect does, how to use it, and how the database is organized.</p>
+      </div>
+    </section>
+
+    <div class="wrap page-body">
+      <nav class="toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ul>
+          <li><a href="#what">What it does</a></li>
+          <li><a href="#start">Getting started</a></li>
+          <li><a href="#rules">Booking rules</a></li>
+          <li><a href="#orgs">Clubs &amp; orgs</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#database">Database design</a></li>
+        </ul>
+      </nav>
+
+      <div class="content">
+        <section id="what">
+          <h2>What it does</h2>
+          <p>CourtConnect puts every athletic space at SDSU in one reservation system: basketball and volleyball courts, indoor soccer, football and soccer fields, pool lanes, the boxing gym and the yoga gym. Students book a time slot, show up, and check in. Clubs and organizations can book larger spaces for events and post them to a shared events feed.</p>
+        </section>
+
+        <section id="start">
+          <h2>Getting started</h2>
+          <ol class="steps">
+            <li><strong>Register</strong>Sign up with your SDSU student ID and email.</li>
+            <li><strong>Pass the facility quiz</strong>Fill out the access form and pass a short quiz on safety rules and facility etiquette. You can't reserve until you pass.</li>
+            <li><strong>Reserve a space</strong>Pick a facility and an open time slot inside a reservation window.</li>
+            <li><strong>Check in when you arrive</strong>Check in at the facility to confirm you used the reservation. If you don't, it counts as a no-show.</li>
+          </ol>
+        </section>
+
+        <section id="rules">
+          <h2>Booking rules</h2>
+          <p>The rules keep spaces fair to share and discourage booking a court you won't use.</p>
+          <dl class="rules">
+            <div><dt>1 per day</dt><dd>Each student can hold one reservation per day.</dd></div>
+            <div><dt>Set windows</dt><dd>Reservations are only taken at set times of day. Outside those windows, spaces are first come, first served.</dd></div>
+            <div><dt>1 no-show</dt><dd>A temporary lockout from reserving.</dd></div>
+            <div><dt>3 no-shows</dt><dd>A permanent lockout from the app.</dd></div>
+          </dl>
+          <div class="todo"><p><strong>[TODO: reservation windows]</strong> List the exact reserved time windows and the length of a temporary lockout.</p></div>
+        </section>
+
+        <section id="orgs">
+          <h2>Clubs &amp; organizations</h2>
+          <p>Clubs, fraternities, sororities and other student orgs can reserve larger spaces, like a full field or gym, for events without going through the school directly.</p>
+          <p>Orgs can also post and promote events on the app, for example "Spikeball Club hosting a session at 1 pm on Ens Field." That turns CourtConnect into a light events and discovery feed on top of the booking system.</p>
+        </section>
+
+        <section id="pricing">
+          <h2>Pricing</h2>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th scope="col">Who</th><th scope="col">Weekdays</th><th scope="col">Weekends</th></tr></thead>
+              <tbody>
+                <tr><td>Students</td><td>Free</td><td>Small fee</td></tr>
+                <tr><td>Clubs &amp; orgs</td><td>Free</td><td>Small fee</td></tr>
+                <tr><td>General public (future)</td><td>Fee</td><td>Fee</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Opening to the public later would generate revenue for the university from facilities it already runs.</p>
+        </section>
+
+        <section id="database">
+          <h2>Database design</h2>
+          <p>Six tables hold everything. Users make reservations for facilities; organizations host events at facilities; payments are recorded only for weekend or public reservations.</p>
+
+          <figure>
+            <div class="placeholder tall" role="img" aria-label="ER diagram placeholder"><strong>ER diagram</strong><span>Entity-relationship diagram of the six tables below.</span></div>
+            <figcaption>CourtConnect entity-relationship diagram.</figcaption>
+          </figure>
+
+          <div class="schema">
+            <div class="entity">
+              <h3>Users</h3>
+              <ul>
+                <li><span>student_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>name</span><span></span></li>
+                <li><span>email</span><span></span></li>
+                <li><span>role</span><span>student, club, public</span></li>
+                <li><span>status</span><span>active, warned, banned</span></li>
+                <li><span>no_show_count</span><span></span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Facilities</h3>
+              <ul>
+                <li><span>facility_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>name</span><span></span></li>
+                <li><span>type</span><span>court, field, pool lane, gym</span></li>
+                <li><span>capacity</span><span></span></li>
+                <li><span>location</span><span></span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Reservations</h3>
+              <ul>
+                <li><span>reservation_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>user_id<span class="key fk">FK</span></span><span>Users</span></li>
+                <li><span>facility_id<span class="key fk">FK</span></span><span>Facilities</span></li>
+                <li><span>date</span><span></span></li>
+                <li><span>time_slot</span><span></span></li>
+                <li><span>status</span><span>booked, checked-in, no-show, cancelled</span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Organizations</h3>
+              <ul>
+                <li><span>org_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>org_name</span><span></span></li>
+                <li><span>type</span><span>club, frat, sorority</span></li>
+                <li><span>contact_user_id<span class="key fk">FK</span></span><span>Users</span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Events</h3>
+              <ul>
+                <li><span>event_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>org_id<span class="key fk">FK</span></span><span>Organizations</span></li>
+                <li><span>facility_id<span class="key fk">FK</span></span><span>Facilities</span></li>
+                <li><span>date</span><span></span></li>
+                <li><span>time</span><span></span></li>
+                <li><span>description</span><span></span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Payments</h3>
+              <ul>
+                <li><span>payment_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>user_id<span class="key fk">FK</span></span><span>Users</span></li>
+                <li><span>amount</span><span></span></li>
+                <li><span>date</span><span></span></li>
+                <li><span>reservation_id<span class="key fk">FK</span></span><span>Reservations</span></li>
+              </ul>
+              <p class="note">Only created for weekend or public use.</p>
+            </div>
+          </div>
+          <p>Full column types, constraints and example queries are in the <a href="technical.html">technical document</a>.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CourtConnect, a class project for CS 514 at San Diego State University.</p>
+      <p><a href="https://github.com/Hmitchell48/CS-514-Project">View on GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CourtConnect</title>
+  <meta name="description" content="CourtConnect lets SDSU students reserve any athletic space on campus: courts, fields, pool lanes and gyms.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="5" width="28" height="20" rx="2" fill="#b8132f"/><g fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5v20"/><circle cx="15" cy="15" r="4"/><path d="M1 10h5v10H1M29 10h-5v10h5"/></g></svg>
+        CourtConnect
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="overview.html">Product overview</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="source.html">Source code</a></li>
+          <li><a href="technical.html">Technical doc</a></li>
+          <li><a href="presentation.html">Presentation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <h1>Book the court before you get there.</h1>
+          <p class="pitch">CourtConnect is a campus app that lets SDSU students reserve any athletic space: courts, fields, pool lanes and gyms. The current ARC app doesn't do that.</p>
+          <div class="actions">
+            <a class="btn" href="overview.html">See how it works</a>
+            <a class="btn btn-secondary" href="about.html">Read about the project</a>
+          </div>
+          <p class="hero-meta">A CS 514 database project at San Diego State University.</p>
+        </div>
+        <div class="placeholder tall" role="img" aria-label="Hero image placeholder">
+          <strong>Hero photo</strong>
+          <span>Students playing on a campus court or field. Replace this box with an &lt;img&gt;.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="board-section">
+      <div class="wrap">
+        <div class="board-intro">
+          <h2>Every space on campus, on one schedule.</h2>
+          <p>Right now you walk to the ARC and hope a court is free. CourtConnect shows what's booked, what's open, and where clubs are hosting events, so you can plan your day around it.</p>
+        </div>
+
+        <div class="board">
+          <table>
+            <caption>Sample schedule, Tuesday</caption>
+            <thead>
+              <tr>
+                <th scope="col">Space</th>
+                <th scope="col">7 am</th>
+                <th scope="col">9 am</th>
+                <th scope="col">11 am</th>
+                <th scope="col">1 pm</th>
+                <th scope="col">3 pm</th>
+                <th scope="col">5 pm</th>
+                <th scope="col">7 pm</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Basketball court 1</th>
+                <td class="booked">Booked</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="open">Open</td><td class="booked">Booked</td><td class="booked">Booked</td>
+              </tr>
+              <tr>
+                <th scope="row">Volleyball court</th>
+                <td class="open">Open</td><td class="booked">Booked</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="booked">Booked</td><td class="event">Club event</td><td class="event">Club event</td>
+              </tr>
+              <tr>
+                <th scope="row">Ens Field</th>
+                <td class="open">Open</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="event">Spikeball Club</td><td class="open">Open</td><td class="booked">Booked</td><td class="open">Open</td>
+              </tr>
+              <tr>
+                <th scope="row">Pool lane 4</th>
+                <td class="booked">Booked</td><td class="booked">Booked</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="open">Open</td><td class="open">Open</td><td class="booked">Booked</td>
+              </tr>
+              <tr>
+                <th scope="row">Boxing gym</th>
+                <td class="open">Open</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="booked">Booked</td><td class="booked">Booked</td><td class="open">Open</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul class="legend">
+            <li><span class="swatch booked"></span>Reserved by a student</li>
+            <li><span class="swatch open"></span>Open to reserve</li>
+            <li><span class="swatch event"></span>Club or org event</li>
+            <li><span class="swatch walkup"></span>Outside reservation windows, first come first served</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="deliverables">
+      <div class="wrap">
+        <h2>Project deliverables</h2>
+        <p>Everything our team is submitting for the course, in one place.</p>
+        <ul class="deliverable-list">
+          <li><a href="about.html"><h3>About</h3><p>Who we are, our mission, and the problem we're solving for SDSU students.</p></a></li>
+          <li><a href="overview.html"><h3>Product overview &amp; instructions</h3><p>How CourtConnect works, the booking rules, and the database behind it.</p></a></li>
+          <li><a href="blog.html"><h3>Blog</h3><p>Each team member on what they built and what they learned.</p></a></li>
+          <li><a href="source.html"><h3>Source code &amp; executable</h3><p>The GitHub repository and a summary of how the code was written.</p></a></li>
+          <li><a href="technical.html"><h3>Technical document</h3><p>The full database product document, with schema and implementation details.</p></a></li>
+          <li><a href="presentation.html"><h3>Draft presentation</h3><p>Our slides for the class presentation.</p></a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CourtConnect, a class project for CS 514 at San Diego State University.</p>
+      <p><a href="https://github.com/Hmitchell48/CS-514-Project">View on GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Technical document | CourtConnect</title>
+  <meta name="description" content="The CourtConnect database product document: schema, relationships and implementation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="5" width="28" height="20" rx="2" fill="#b8132f"/><g fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5v20"/><circle cx="15" cy="15" r="4"/><path d="M1 10h5v10H1M29 10h-5v10h5"/></g></svg>
+        CourtConnect
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="overview.html">Product overview</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="source.html">Source code</a></li>
+          <li><a href="technical.html" aria-current="page">Technical doc</a></li>
+          <li><a href="presentation.html">Presentation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="wrap">
+        <p class="crumb"><a href="index.html">Home</a> / Technical document</p>
+        <h1>Database product document</h1>
+        <p class="lede">The technical write-up of CourtConnect's database: schema, relationships, business rules and implementation.</p>
+      </div>
+    </section>
+
+    <div class="wrap page-body">
+      <nav class="toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ul>
+          <li><a href="#pdf">Download the PDF</a></li>
+          <li><a href="#er">ER diagram</a></li>
+          <li><a href="#schema">Schema</a></li>
+          <li><a href="#relationships">Relationships</a></li>
+          <li><a href="#rules">Business rules</a></li>
+          <li><a href="#implementation">Implementation</a></li>
+          <li><a href="#screens">Screenshots</a></li>
+        </ul>
+      </nav>
+
+      <div class="content">
+        <section id="pdf">
+          <h2>Download the PDF</h2>
+          <div class="linkout">
+            <div>
+              <p class="label">CourtConnect technical document (PDF)</p>
+              <p class="url">[TODO: add docs/CourtConnect-Technical.pdf to the repo]</p>
+            </div>
+            <a class="btn" href="docs/CourtConnect-Technical.pdf">Download PDF</a>
+          </div>
+        </section>
+
+        <section id="er">
+          <h2>ER diagram</h2>
+          <figure>
+            <div class="placeholder tall" role="img" aria-label="ER diagram placeholder"><strong>ER diagram</strong><span>Full entity-relationship diagram with cardinalities.</span></div>
+            <figcaption>Users, Facilities, Reservations, Organizations, Events and Payments.</figcaption>
+          </figure>
+        </section>
+
+        <section id="schema">
+          <h2>Schema</h2>
+          <p>Column types below are a starting point. <strong>[TODO: confirm types against the final DDL.]</strong></p>
+
+          <h3>Users</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>student_id</code></td><td>VARCHAR</td><td>Primary key</td></tr>
+              <tr><td><code>name</code></td><td>VARCHAR</td><td>Not null</td></tr>
+              <tr><td><code>email</code></td><td>VARCHAR</td><td>Not null, unique</td></tr>
+              <tr><td><code>role</code></td><td>ENUM</td><td>student, club, public</td></tr>
+              <tr><td><code>status</code></td><td>ENUM</td><td>active, warned, banned; default active</td></tr>
+              <tr><td><code>no_show_count</code></td><td>INT</td><td>Default 0</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Facilities</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>facility_id</code></td><td>INT</td><td>Primary key</td></tr>
+              <tr><td><code>name</code></td><td>VARCHAR</td><td>Not null</td></tr>
+              <tr><td><code>type</code></td><td>ENUM</td><td>court, field, pool lane, gym</td></tr>
+              <tr><td><code>capacity</code></td><td>INT</td><td></td></tr>
+              <tr><td><code>location</code></td><td>VARCHAR</td><td></td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Reservations</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>reservation_id</code></td><td>INT</td><td>Primary key</td></tr>
+              <tr><td><code>user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
+              <tr><td><code>facility_id</code></td><td>INT</td><td>Foreign key to Facilities</td></tr>
+              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
+              <tr><td><code>time_slot</code></td><td>VARCHAR / TIME</td><td>Not null</td></tr>
+              <tr><td><code>status</code></td><td>ENUM</td><td>booked, checked-in, no-show, cancelled</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Organizations</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>org_id</code></td><td>INT</td><td>Primary key</td></tr>
+              <tr><td><code>org_name</code></td><td>VARCHAR</td><td>Not null</td></tr>
+              <tr><td><code>type</code></td><td>ENUM</td><td>club, frat, sorority</td></tr>
+              <tr><td><code>contact_user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Events</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>event_id</code></td><td>INT</td><td>Primary key</td></tr>
+              <tr><td><code>org_id</code></td><td>INT</td><td>Foreign key to Organizations</td></tr>
+              <tr><td><code>facility_id</code></td><td>INT</td><td>Foreign key to Facilities</td></tr>
+              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
+              <tr><td><code>time</code></td><td>TIME</td><td>Not null</td></tr>
+              <tr><td><code>description</code></td><td>TEXT</td><td></td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Payments</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>payment_id</code></td><td>INT</td><td>Primary key</td></tr>
+              <tr><td><code>user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
+              <tr><td><code>amount</code></td><td>DECIMAL(6,2)</td><td>Not null</td></tr>
+              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
+              <tr><td><code>reservation_id</code></td><td>INT</td><td>Foreign key to Reservations</td></tr>
+            </tbody>
+          </table></div>
+        </section>
+
+        <section id="relationships">
+          <h2>Relationships</h2>
+          <ul>
+            <li>A user makes many reservations; each reservation belongs to one user and one facility.</li>
+            <li>A facility has many reservations and many events.</li>
+            <li>An organization has one contact user and hosts many events.</li>
+            <li>A payment belongs to one user and one reservation, and exists only for weekend or public reservations.</li>
+          </ul>
+        </section>
+
+        <section id="rules">
+          <h2>Business rules</h2>
+          <ul>
+            <li><strong>One reservation per student per day.</strong> Enforced on (<code>user_id</code>, <code>date</code>) for active reservations.</li>
+            <li><strong>Reservation windows.</strong> Bookings are only accepted in set time windows; outside them, spaces are first come, first served.</li>
+            <li><strong>No-show penalties.</strong> A reservation not checked in becomes <code>no-show</code> and increments <code>no_show_count</code>. One no-show sets the user to <code>warned</code> with a temporary lockout; three set them to <code>banned</code>.</li>
+            <li><strong>Access requirement.</strong> A user must complete the access form and pass the safety and etiquette quiz before booking.</li>
+            <li><strong>Payments.</strong> Weekend reservations and public users require a payment record.</li>
+          </ul>
+        </section>
+
+        <section id="implementation">
+          <h2>Implementation</h2>
+          <div class="todo">
+            <p><strong>[TODO: implementation write-up]</strong> The detailed write-up goes here. Suggested sections:</p>
+            <ul>
+              <li>DBMS and tools used, and why</li>
+              <li>DDL for each table, including keys, constraints and indexes</li>
+              <li>How the booking rules are enforced (constraints, triggers or application logic)</li>
+              <li>Key queries: available slots, a user's reservations, no-show processing, the events feed</li>
+              <li>Sample data and test cases</li>
+              <li>Known limitations and future work</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="screens">
+          <h2>Screenshots</h2>
+          <div class="split">
+            <figure>
+              <div class="placeholder" role="img" aria-label="App screenshot placeholder"><strong>Screenshot</strong><span>Reservation flow.</span></div>
+              <figcaption>Making a reservation.</figcaption>
+            </figure>
+            <figure>
+              <div class="placeholder" role="img" aria-label="App screenshot placeholder"><strong>Screenshot</strong><span>Check-in or admin view.</span></div>
+              <figcaption>Checking in.</figcaption>
+            </figure>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CourtConnect, a class project for CS 514 at San Diego State University.</p>
+      <p><a href="https://github.com/Hmitchell48/CS-514-Project">View on GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

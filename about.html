@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About | CourtConnect</title>
+  <meta name="description" content="Who we are, our mission, and the problem CourtConnect solves for SDSU students.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="5" width="28" height="20" rx="2" fill="#b8132f"/><g fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5v20"/><circle cx="15" cy="15" r="4"/><path d="M1 10h5v10H1M29 10h-5v10h5"/></g></svg>
+        CourtConnect
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="about.html" aria-current="page">About</a></li>
+          <li><a href="overview.html">Product overview</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="source.html">Source code</a></li>
+          <li><a href="technical.html">Technical doc</a></li>
+          <li><a href="presentation.html">Presentation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="wrap">
+        <p class="crumb"><a href="index.html">Home</a> / About</p>
+        <h1>About CourtConnect</h1>
+        <p class="lede">We're a student team building the reservation system SDSU's athletic spaces are missing.</p>
+      </div>
+    </section>
+
+    <div class="wrap page-body">
+      <nav class="toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ul>
+          <li><a href="#company">Who we are</a></li>
+          <li><a href="#mission">Mission</a></li>
+          <li><a href="#team">Team roles</a></li>
+          <li><a href="#problem">The problem</a></li>
+          <li><a href="#value">Value to users</a></li>
+          <li><a href="#mockups">App mockups</a></li>
+        </ul>
+      </nav>
+
+      <div class="content">
+        <section id="company">
+          <h2>Who we are</h2>
+          <p>CourtConnect is a hypothetical campus-tech company started by a team of SDSU computer science students for CS 514. We play pickup basketball, swim laps and run club events on campus, and we kept running into the same problem: there is no way to know if a space is free until you're standing in front of it.</p>
+          <p>So we designed the database and app that would fix it.</p>
+        </section>
+
+        <section id="mission">
+          <h2>Mission</h2>
+          <p>Make every athletic space at SDSU as easy to book as a study room, and fair to share between students, clubs and the wider community.</p>
+        </section>
+
+        <section id="team">
+          <h2>Team roles</h2>
+          <p>Each of us owns one part of the product. Individual write-ups are on the <a href="blog.html">blog</a>.</p>
+          <div class="team">
+            <article class="member">
+              <div class="placeholder" role="img" aria-label="Team photo placeholder"><strong>Photo</strong><span>Headshot</span></div>
+              <h3>[TODO: Name]</h3>
+              <p class="role">Project lead</p>
+              <p>Runs the schedule, keeps the scope honest, and owns the final presentation.</p>
+            </article>
+            <article class="member">
+              <div class="placeholder" role="img" aria-label="Team photo placeholder"><strong>Photo</strong><span>Headshot</span></div>
+              <h3>[TODO: Name]</h3>
+              <p class="role">Database design</p>
+              <p>Owns the schema, the ER diagram, and the rules that keep reservations consistent.</p>
+            </article>
+            <article class="member">
+              <div class="placeholder" role="img" aria-label="Team photo placeholder"><strong>Photo</strong><span>Headshot</span></div>
+              <h3>[TODO: Name]</h3>
+              <p class="role">Application &amp; front end</p>
+              <p>Builds the booking, check-in and events screens on top of the database.</p>
+            </article>
+            <article class="member">
+              <div class="placeholder" role="img" aria-label="Team photo placeholder"><strong>Photo</strong><span>Headshot</span></div>
+              <h3>[TODO: Name]</h3>
+              <p class="role">Testing &amp; documentation</p>
+              <p>Writes the test data and queries, and the technical product document.</p>
+            </article>
+          </div>
+          <div class="todo" style="margin-top: 1.5rem"><p><strong>[TODO: confirm roles]</strong> Replace names and adjust roles to match the actual team. Add or remove cards as needed.</p></div>
+        </section>
+
+        <section id="problem">
+          <h2>The problem</h2>
+          <p>SDSU's ARC app only handles racquetball reservations, and it's limited to pickleball and badminton. Everything else has no reservation system at all.</p>
+          <div class="split contrast">
+            <div class="before">
+              <h3>Today</h3>
+              <ul>
+                <li>No way to reserve basketball or volleyball courts, indoor soccer, football or soccer fields, pool lanes, the boxing gym or the yoga gym.</li>
+                <li>Students show up and hope a space is free.</li>
+                <li>Clubs, frats and sororities have to go through the school to book a larger space for an event.</li>
+                <li>There's nowhere to find out what's happening on campus fields and courts.</li>
+              </ul>
+            </div>
+            <div class="after">
+              <h3>With CourtConnect</h3>
+              <ul>
+                <li>Every sport space on campus is bookable from one app.</li>
+                <li>You know before you leave that your court or lane is held for you.</li>
+                <li>Orgs reserve larger spaces themselves and post their events.</li>
+                <li>A light events feed shows what's on, like a Spikeball Club session at 1 pm on Ens Field.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="value">
+          <h2>Value to users</h2>
+          <h3>Students</h3>
+          <p>Guaranteed time on the space you want, free on weekdays. Fair rules mean one person can't hog a court: one reservation per student per day, and reservation windows at set times so the rest of the day stays first come, first served.</p>
+          <h3>Clubs and organizations</h3>
+          <p>Book a field or gym for an event without an approval chain, and reach students who might want to join through the events feed.</p>
+          <h3>The university</h3>
+          <p>Better use of facilities it already has, fewer no-shows thanks to check-in and penalties, and a path to new revenue from weekend fees and, eventually, public access.</p>
+        </section>
+
+        <section id="mockups">
+          <h2>App mockups</h2>
+          <div class="split">
+            <figure>
+              <div class="placeholder tall" role="img" aria-label="App mockup placeholder"><strong>App mockup</strong><span>Booking screen: pick a space and time slot.</span></div>
+              <figcaption>Booking a space.</figcaption>
+            </figure>
+            <figure>
+              <div class="placeholder tall" role="img" aria-label="App mockup placeholder"><strong>App mockup</strong><span>Events feed with club sessions.</span></div>
+              <figcaption>The events feed.</figcaption>
+            </figure>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CourtConnect, a class project for CS 514 at San Diego State University.</p>
+      <p><a href="https://github.com/Hmitchell48/CS-514-Project">View on GitHub</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
