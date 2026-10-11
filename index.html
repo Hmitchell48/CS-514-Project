@@ -45,66 +45,149 @@
           </div>
           <p class="hero-meta">A CS 514 database project at San Diego State University.</p>
         </div>
-        <div class="placeholder tall" role="img" aria-label="Hero image placeholder">
-          <strong>Hero photo</strong>
-          <span>Students playing on a campus court or field. Replace this box with an &lt;img&gt;.</span>
-        </div>
+        <img class="hero-photo" src="images/hero-image.jpg" alt="Students playing on a campus court or field">
       </div>
     </section>
 
-    <section class="board-section">
+    <section class="board-section" id="book">
       <div class="wrap">
         <div class="board-intro">
           <h2>Every space on campus, on one schedule.</h2>
           <p>Right now you walk to the ARC and hope a court is free. CourtConnect shows what's booked, what's open, and where clubs are hosting events, so you can plan your day around it.</p>
         </div>
 
-        <div class="board">
-          <table>
-            <caption>Sample schedule, Tuesday</caption>
-            <thead>
-              <tr>
-                <th scope="col">Space</th>
-                <th scope="col">7 am</th>
-                <th scope="col">9 am</th>
-                <th scope="col">11 am</th>
-                <th scope="col">1 pm</th>
-                <th scope="col">3 pm</th>
-                <th scope="col">5 pm</th>
-                <th scope="col">7 pm</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">Basketball court 1</th>
-                <td class="booked">Booked</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="open">Open</td><td class="booked">Booked</td><td class="booked">Booked</td>
-              </tr>
-              <tr>
-                <th scope="row">Volleyball court</th>
-                <td class="open">Open</td><td class="booked">Booked</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="booked">Booked</td><td class="event">Club event</td><td class="event">Club event</td>
-              </tr>
-              <tr>
-                <th scope="row">Ens Field</th>
-                <td class="open">Open</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="event">Spikeball Club</td><td class="open">Open</td><td class="booked">Booked</td><td class="open">Open</td>
-              </tr>
-              <tr>
-                <th scope="row">Pool lane 4</th>
-                <td class="booked">Booked</td><td class="booked">Booked</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="open">Open</td><td class="open">Open</td><td class="booked">Booked</td>
-              </tr>
-              <tr>
-                <th scope="row">Boxing gym</th>
-                <td class="open">Open</td><td class="open">Open</td><td class="walkup">Walk-up</td><td class="walkup">Walk-up</td><td class="booked">Booked</td><td class="booked">Booked</td><td class="open">Open</td>
-              </tr>
-            </tbody>
-          </table>
-          <ul class="legend">
-            <li><span class="swatch booked"></span>Reserved by a student</li>
-            <li><span class="swatch open"></span>Open to reserve</li>
-            <li><span class="swatch event"></span>Club or org event</li>
-            <li><span class="swatch walkup"></span>Outside reservation windows, first come first served</li>
-          </ul>
+        <div class="board" id="booking">
+          <noscript><p class="board-note">Reserving a space needs JavaScript turned on.</p></noscript>
+
+          <div class="gate" id="booking-gate">
+            <div class="gate-intro">
+              <h3 id="booking-gate-title" tabindex="-1">Sign up to reserve a space</h3>
+              <p>The schedule is open to SDSU students. Create an account with your RedID and SDSU email, then pick a space and a time.</p>
+              <ul>
+                <li>Courts, fields, pools, lanes and studios across campus</li>
+                <li>One reservation per day, free on weekdays</li>
+                <li>Check in when you arrive to keep your booking</li>
+              </ul>
+            </div>
+
+            <div class="gate-card">
+              <div class="gate-switch">
+                <button type="button" data-gate-view="signup" aria-pressed="true">Sign up</button>
+                <button type="button" data-gate-view="login" aria-pressed="false">Log in</button>
+              </div>
+
+              <form id="signup-form" novalidate>
+                <div class="field">
+                  <label for="signup-name">Full name</label>
+                  <input id="signup-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="signup-name-error">
+                  <p class="field-error" id="signup-name-error" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="signup-student-id">RedID</label>
+                  <input id="signup-student-id" name="studentId" type="text" inputmode="numeric" autocomplete="off" maxlength="9" required aria-describedby="signup-student-id-error">
+                  <p class="field-error" id="signup-student-id-error" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="signup-email">SDSU email</label>
+                  <input id="signup-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@sdsu.edu" required aria-describedby="signup-email-error">
+                  <p class="field-error" id="signup-email-error" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="signup-password">Password</label>
+                  <input id="signup-password" name="password" type="password" autocomplete="new-password" maxlength="128" required aria-describedby="signup-password-error">
+                  <p class="field-error" id="signup-password-error" hidden></p>
+                </div>
+                <button class="btn btn-block" type="submit">Sign up</button>
+                <p class="form-status" role="status" hidden></p>
+              </form>
+
+              <form id="login-form" novalidate hidden>
+                <div class="field">
+                  <label for="login-email">SDSU email</label>
+                  <input id="login-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="login-email-error">
+                  <p class="field-error" id="login-email-error" hidden></p>
+                </div>
+                <div class="field">
+                  <label for="login-password">Password</label>
+                  <input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required aria-describedby="login-password-error">
+                  <p class="field-error" id="login-password-error" hidden></p>
+                </div>
+                <button class="btn btn-block" type="submit">Log in</button>
+                <p class="form-status" role="status" hidden></p>
+              </form>
+            </div>
+          </div>
+
+          <div class="booking-app" id="booking-app" hidden>
+            <div class="booking-bar">
+              <h3 id="booking-title" tabindex="-1">Reserve a space</h3>
+              <div class="booking-account">
+                <p>Signed in as <strong id="booking-user"></strong></p>
+                <button type="button" class="btn btn-sm btn-light" id="booking-logout">Log out</button>
+              </div>
+            </div>
+
+            <div class="booking-controls">
+              <div class="control">
+                <span class="control-label" id="booking-venue-label">Facility</span>
+                <div class="select" id="booking-venue">
+                  <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="booking-venue-menu" aria-labelledby="booking-venue-label booking-venue-value">
+                    <span class="select-value" id="booking-venue-value"></span>
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <ul class="select-menu" id="booking-venue-menu" role="listbox" tabindex="-1" aria-labelledby="booking-venue-label" hidden></ul>
+                </div>
+              </div>
+              <div class="control">
+                <span class="control-label" id="booking-days-label">Day</span>
+                <div class="day-picker" id="booking-days" role="group" aria-labelledby="booking-days-label"></div>
+              </div>
+            </div>
+
+            <div class="schedule-intro">
+              <h4 id="booking-heading"></h4>
+              <p id="booking-subheading"></p>
+              <p>Reservations are taken from 7 to 11 am and from 3 to 9 pm. From 11 am to 3 pm every space is first come, first served.</p>
+            </div>
+            <p class="board-notice" id="booking-note" hidden></p>
+
+            <div class="schedule">
+              <div class="schedule-times" id="booking-times" aria-hidden="true"></div>
+              <ul class="spaces" id="booking-spaces"></ul>
+              <p class="schedule-empty" id="booking-empty" hidden></p>
+            </div>
+
+            <ul class="legend">
+              <li><span class="swatch open"></span>Open to reserve</li>
+              <li><span class="swatch mine"></span>Your reservation</li>
+              <li><span class="swatch booked"></span>Reserved by a student</li>
+              <li><span class="swatch event"></span>Club or org event</li>
+              <li><span class="swatch walkup"></span>Walk-up, first come first served</li>
+              <li><span class="swatch closed"></span>Closed or already over</li>
+            </ul>
+
+            <div class="my-reservations">
+              <h3 id="booking-mine-title" tabindex="-1">Your reservations</h3>
+              <p class="board-note" id="booking-mine-empty">Nothing booked yet. Pick an open slot above.</p>
+              <ul class="reservation-list" id="booking-mine"></ul>
+            </div>
+          </div>
         </div>
       </div>
+
+      <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="booking-dialog-title">
+        <div class="dialog-body">
+          <h3 id="booking-dialog-title"></h3>
+          <dl class="dialog-facts" id="booking-dialog-facts"></dl>
+          <p class="dialog-note" id="booking-dialog-note"></p>
+          <div class="dialog-actions">
+            <button type="button" class="btn" id="booking-dialog-confirm"></button>
+            <button type="button" class="btn btn-secondary" id="booking-dialog-dismiss"></button>
+          </div>
+        </div>
+      </dialog>
+
+      <div class="toast-region" id="booking-toast" role="status"></div>
     </section>
 
     <section class="deliverables">
@@ -131,5 +214,6 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script src="js/booking.js"></script>
 </body>
 </html>
