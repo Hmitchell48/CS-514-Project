@@ -1108,6 +1108,15 @@ table.data code { font-size: 0.9em; }
   padding: var(--s-2);
 }
 .member .placeholder { min-height: 170px; margin-bottom: var(--s-2); }
+.member .headshot {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: var(--s-2);
+}
 .member h3 { margin: 0 0 0.2rem; font-size: var(--step-1); }
 .member .role { color: var(--field); font-weight: 600; margin: 0 0 var(--s-1); }
 .member p { font-size: 0.98rem; }

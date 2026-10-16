@@ -72,7 +72,7 @@
           <h2>ER diagram</h2>
           <figure>
             <div class="placeholder tall" role="img" aria-label="ER diagram placeholder"><strong>ER diagram</strong><span>Full entity-relationship diagram with cardinalities.</span></div>
-            <figcaption>Users, Facilities, Reservations, Organizations, Events and Payments.</figcaption>
+            <figcaption>Users, Facilities, Reservations, Organizations and Events.</figcaption>
           </figure>
         </section>
 
@@ -141,18 +141,6 @@
               <tr><td><code>description</code></td><td>TEXT</td><td></td></tr>
             </tbody>
           </table></div>
-
-          <h3>Payments</h3>
-          <div class="table-wrap"><table class="data">
-            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
-            <tbody>
-              <tr><td><code>payment_id</code></td><td>INT</td><td>Primary key</td></tr>
-              <tr><td><code>user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
-              <tr><td><code>amount</code></td><td>DECIMAL(6,2)</td><td>Not null</td></tr>
-              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
-              <tr><td><code>reservation_id</code></td><td>INT</td><td>Foreign key to Reservations</td></tr>
-            </tbody>
-          </table></div>
         </section>
 
         <section id="relationships">
@@ -160,9 +148,7 @@
           <ul>
             <li>A user makes many reservations; each reservation belongs to one user and one facility.</li>
             <li>A facility has many reservations and many events.</li>
-            <li>An organization has one contact user and hosts many events.</li>
-            <li>A payment belongs to one user and one reservation, and exists only for weekend or public reservations.</li>
-          </ul>
+            <li>An organization has one contact user and hosts many events.</li>          </ul>
         </section>
 
         <section id="rules">
@@ -171,9 +157,7 @@
             <li><strong>One reservation per student per day.</strong> Enforced on (<code>user_id</code>, <code>date</code>) for active reservations.</li>
             <li><strong>Reservation windows.</strong> Bookings are only accepted in set time windows; outside them, spaces are first come, first served.</li>
             <li><strong>No-show penalties.</strong> A reservation not checked in becomes <code>no-show</code> and increments <code>no_show_count</code>. One no-show sets the user to <code>warned</code> with a temporary lockout; three set them to <code>banned</code>.</li>
-            <li><strong>Access requirement.</strong> A user must complete the access form and pass the safety and etiquette quiz before booking.</li>
-            <li><strong>Payments.</strong> Weekend reservations and public users require a payment record.</li>
-          </ul>
+            <li><strong>Access requirement.</strong> A user must complete the access form and pass the safety and etiquette quiz before booking.</li>          </ul>
         </section>
 
         <section id="implementation">

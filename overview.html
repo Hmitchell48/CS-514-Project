@@ -50,7 +50,6 @@
           <li><a href="#start">Getting started</a></li>
           <li><a href="#rules">Booking rules</a></li>
           <li><a href="#orgs">Clubs &amp; orgs</a></li>
-          <li><a href="#pricing">Pricing</a></li>
           <li><a href="#database">Database design</a></li>
         </ul>
       </nav>
@@ -89,24 +88,9 @@
           <p>Orgs can also post and promote events on the app, for example "Spikeball Club hosting a session at 1 pm on Ens Field." That turns CourtConnect into a light events and discovery feed on top of the booking system.</p>
         </section>
 
-        <section id="pricing">
-          <h2>Pricing</h2>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th scope="col">Who</th><th scope="col">Weekdays</th><th scope="col">Weekends</th></tr></thead>
-              <tbody>
-                <tr><td>Students</td><td>Free</td><td>Small fee</td></tr>
-                <tr><td>Clubs &amp; orgs</td><td>Free</td><td>Small fee</td></tr>
-                <tr><td>General public (future)</td><td>Fee</td><td>Fee</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>Opening to the public later would generate revenue for the university from facilities it already runs.</p>
-        </section>
-
         <section id="database">
           <h2>Database design</h2>
-          <p>Six tables hold everything. Users make reservations for facilities; organizations host events at facilities; payments are recorded only for weekend or public reservations.</p>
+          <p>Five tables hold everything. Users make reservations for facilities; organizations host events at facilities.</p>
 
           <figure>
             <div class="placeholder tall" role="img" aria-label="ER diagram placeholder"><strong>ER diagram</strong><span>Entity-relationship diagram of the six tables below.</span></div>
@@ -165,17 +149,6 @@
                 <li><span>time</span><span></span></li>
                 <li><span>description</span><span></span></li>
               </ul>
-            </div>
-            <div class="entity">
-              <h3>Payments</h3>
-              <ul>
-                <li><span>payment_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>user_id<span class="key fk">FK</span></span><span>Users</span></li>
-                <li><span>amount</span><span></span></li>
-                <li><span>date</span><span></span></li>
-                <li><span>reservation_id<span class="key fk">FK</span></span><span>Reservations</span></li>
-              </ul>
-              <p class="note">Only created for weekend or public use.</p>
             </div>
           </div>
           <p>Full column types, constraints and example queries are in the <a href="technical.html">technical document</a>.</p>
