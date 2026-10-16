@@ -71,74 +71,105 @@
         <section id="er">
           <h2>ER diagram</h2>
           <figure>
-            <a href="images/erd.png"><img src="images/erd.png" alt="CourtConnect entity-relationship diagram showing the users, facilities, reservations, organizations, events, facility_schedules, payments and penalties tables and the keys that link them" width="2224" height="1280"></a>
+            <a href="images/erd.png"><img src="images/erd.png" alt="CourtConnect entity-relationship diagram showing the users, facilities, facility_schedules, reservations, organizations, events and penalties tables and the keys that link them" width="2224" height="1280"></a>
             <figcaption>CourtConnect entity-relationship diagram. Click to open full size.</figcaption>
           </figure>
         </section>
 
         <section id="schema">
           <h2>Schema</h2>
-          <p>Column types below are a starting point. <strong>[TODO: confirm types against the final DDL.]</strong></p>
+          <p>Seven tables, matching the ER diagram above. Columns, types and keys come from the diagram; the CHECK and default rules are added in the DDL. Types are PostgreSQL.</p>
 
-          <h3>Users</h3>
+          <h3>users</h3>
           <div class="table-wrap"><table class="data">
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
-              <tr><td><code>student_id</code></td><td>VARCHAR</td><td>Primary key</td></tr>
-              <tr><td><code>name</code></td><td>VARCHAR</td><td>Not null</td></tr>
-              <tr><td><code>email</code></td><td>VARCHAR</td><td>Not null, unique</td></tr>
-              <tr><td><code>role</code></td><td>ENUM</td><td>student, club, public</td></tr>
-              <tr><td><code>status</code></td><td>ENUM</td><td>active, warned, banned; default active</td></tr>
-              <tr><td><code>no_show_count</code></td><td>INT</td><td>Default 0</td></tr>
+              <tr><td><code>user_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>sdsu_red_id</code></td><td>VARCHAR(9)</td><td>Unique, 9 digits</td></tr>
+              <tr><td><code>email</code></td><td>VARCHAR(255)</td><td>Not null, unique</td></tr>
+              <tr><td><code>full_name</code></td><td>VARCHAR(120)</td><td>Not null</td></tr>
+              <tr><td><code>role</code></td><td>VARCHAR(10)</td><td>student, club, admin; default student</td></tr>
+              <tr><td><code>status</code></td><td>VARCHAR(10)</td><td>active, warned, banned; default active</td></tr>
+              <tr><td><code>safety_quiz_passed</code></td><td>BOOLEAN</td><td>Not null, default false</td></tr>
+              <tr><td><code>no_show_count</code></td><td>INTEGER</td><td>Not null, default 0</td></tr>
+              <tr><td><code>suspended_until</code></td><td>TIMESTAMP</td><td>Null unless temporarily locked out</td></tr>
+              <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>Not null, default now()</td></tr>
             </tbody>
           </table></div>
 
-          <h3>Facilities</h3>
+          <h3>facilities</h3>
           <div class="table-wrap"><table class="data">
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
-              <tr><td><code>facility_id</code></td><td>INT</td><td>Primary key</td></tr>
-              <tr><td><code>name</code></td><td>VARCHAR</td><td>Not null</td></tr>
-              <tr><td><code>type</code></td><td>ENUM</td><td>court, field, pool lane, gym</td></tr>
-              <tr><td><code>capacity</code></td><td>INT</td><td></td></tr>
-              <tr><td><code>location</code></td><td>VARCHAR</td><td></td></tr>
+              <tr><td><code>facility_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>name</code></td><td>VARCHAR(100)</td><td>Not null</td></tr>
+              <tr><td><code>type</code></td><td>VARCHAR(20)</td><td>court, field, pool, gym, studio, other</td></tr>
+              <tr><td><code>location_area</code></td><td>VARCHAR(100)</td><td></td></tr>
+              <tr><td><code>capacity</code></td><td>INTEGER</td><td>Not null, greater than 0</td></tr>
+              <tr><td><code>is_active</code></td><td>BOOLEAN</td><td>Not null, default true</td></tr>
             </tbody>
           </table></div>
 
-          <h3>Reservations</h3>
+          <h3>facility_schedules</h3>
           <div class="table-wrap"><table class="data">
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
-              <tr><td><code>reservation_id</code></td><td>INT</td><td>Primary key</td></tr>
-              <tr><td><code>user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
-              <tr><td><code>facility_id</code></td><td>INT</td><td>Foreign key to Facilities</td></tr>
-              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
-              <tr><td><code>time_slot</code></td><td>VARCHAR / TIME</td><td>Not null</td></tr>
-              <tr><td><code>status</code></td><td>ENUM</td><td>booked, checked-in, no-show, cancelled</td></tr>
+              <tr><td><code>schedule_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>facility_id</code></td><td>INTEGER</td><td>Foreign key to facilities, not null</td></tr>
+              <tr><td><code>day_of_week</code></td><td>INTEGER</td><td>0 to 6 (0 = Sunday)</td></tr>
+              <tr><td><code>bookable_start</code></td><td>TIME</td><td>Not null</td></tr>
+              <tr><td><code>bookable_end</code></td><td>TIME</td><td>Not null, after bookable_start</td></tr>
             </tbody>
           </table></div>
 
-          <h3>Organizations</h3>
+          <h3>reservations</h3>
           <div class="table-wrap"><table class="data">
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
-              <tr><td><code>org_id</code></td><td>INT</td><td>Primary key</td></tr>
-              <tr><td><code>org_name</code></td><td>VARCHAR</td><td>Not null</td></tr>
-              <tr><td><code>type</code></td><td>ENUM</td><td>club, frat, sorority</td></tr>
-              <tr><td><code>contact_user_id</code></td><td>VARCHAR</td><td>Foreign key to Users</td></tr>
+              <tr><td><code>reservation_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>user_id</code></td><td>INTEGER</td><td>Foreign key to users, not null</td></tr>
+              <tr><td><code>facility_id</code></td><td>INTEGER</td><td>Foreign key to facilities, not null</td></tr>
+              <tr><td><code>start_time</code></td><td>TIMESTAMP</td><td>Not null</td></tr>
+              <tr><td><code>end_time</code></td><td>TIMESTAMP</td><td>Not null, after start_time</td></tr>
+              <tr><td><code>check_in_time</code></td><td>TIMESTAMP</td><td>Null until check-in</td></tr>
+              <tr><td><code>status</code></td><td>VARCHAR(12)</td><td>booked, checked-in, no-show, cancelled; default booked</td></tr>
+              <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>Not null, default now()</td></tr>
             </tbody>
           </table></div>
 
-          <h3>Events</h3>
+          <h3>organizations</h3>
           <div class="table-wrap"><table class="data">
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
-              <tr><td><code>event_id</code></td><td>INT</td><td>Primary key</td></tr>
-              <tr><td><code>org_id</code></td><td>INT</td><td>Foreign key to Organizations</td></tr>
-              <tr><td><code>facility_id</code></td><td>INT</td><td>Foreign key to Facilities</td></tr>
-              <tr><td><code>date</code></td><td>DATE</td><td>Not null</td></tr>
-              <tr><td><code>time</code></td><td>TIME</td><td>Not null</td></tr>
+              <tr><td><code>org_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>name</code></td><td>VARCHAR(150)</td><td>Not null, unique</td></tr>
+              <tr><td><code>category</code></td><td>VARCHAR(50)</td><td>club, fraternity, sorority</td></tr>
+              <tr><td><code>contact_user_id</code></td><td>INTEGER</td><td>Foreign key to users, not null</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>events</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>event_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>reservation_id</code></td><td>INTEGER</td><td>Foreign key to reservations, not null, unique</td></tr>
+              <tr><td><code>org_id</code></td><td>INTEGER</td><td>Foreign key to organizations, not null</td></tr>
+              <tr><td><code>title</code></td><td>VARCHAR(150)</td><td>Not null</td></tr>
               <tr><td><code>description</code></td><td>TEXT</td><td></td></tr>
+              <tr><td><code>is_public_join</code></td><td>BOOLEAN</td><td>Default false; true means any student can join</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>penalties</h3>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
+            <tbody>
+              <tr><td><code>penalty_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>user_id</code></td><td>INTEGER</td><td>Foreign key to users, not null</td></tr>
+              <tr><td><code>reservation_id</code></td><td>INTEGER</td><td>Foreign key to reservations; null if not tied to a booking</td></tr>
+              <tr><td><code>issued_at</code></td><td>TIMESTAMP</td><td>Not null, default now()</td></tr>
+              <tr><td><code>reason</code></td><td>VARCHAR(255)</td><td>Not null</td></tr>
             </tbody>
           </table></div>
         </section>
@@ -147,17 +178,21 @@
           <h2>Relationships</h2>
           <ul>
             <li>A user makes many reservations; each reservation belongs to one user and one facility.</li>
-            <li>A facility has many reservations and many events.</li>
-            <li>An organization has one contact user and hosts many events.</li>          </ul>
+            <li>A facility has many reservations and many bookable windows in facility_schedules.</li>
+            <li>An organization has one contact user and hosts many events.</li>
+            <li>Each event is held on exactly one reservation, so its place and time come from that reservation.</li>
+            <li>A user receives many penalties; a penalty can point at the reservation that caused it.</li>
+          </ul>
         </section>
 
         <section id="rules">
           <h2>Business rules</h2>
           <ul>
-            <li><strong>One reservation per student per day.</strong> Enforced on (<code>user_id</code>, <code>date</code>) for active reservations.</li>
-            <li><strong>Reservation windows.</strong> Bookings are only accepted in set time windows; outside them, spaces are first come, first served.</li>
-            <li><strong>No-show penalties.</strong> A reservation not checked in becomes <code>no-show</code> and increments <code>no_show_count</code>. One no-show sets the user to <code>warned</code> with a temporary lockout; three set them to <code>banned</code>.</li>
-            <li><strong>Access requirement.</strong> A user must complete the access form and pass the safety and etiquette quiz before booking.</li>          </ul>
+            <li><strong>One reservation per student per day.</strong> A unique index on (<code>user_id</code>, the date of <code>start_time</code>) for active reservations.</li>
+            <li><strong>Bookable hours and capacity.</strong> A booking must fall inside a <code>facility_schedules</code> window, and overlapping active reservations can't exceed the facility's <code>capacity</code>. Outside the windows, spaces are first come, first served.</li>
+            <li><strong>No-show penalties.</strong> A reservation not checked in becomes <code>no-show</code>, which adds a <code>penalties</code> row and increments <code>no_show_count</code>. One no-show sets the user to <code>warned</code> and fills <code>suspended_until</code>; three set them to <code>banned</code>.</li>
+            <li><strong>Safety quiz.</strong> A user must have <code>safety_quiz_passed</code> before booking.</li>
+          </ul>
         </section>
 
         <section id="implementation">
