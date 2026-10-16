@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=2">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -50,7 +50,6 @@
           <li><a href="#start">Getting started</a></li>
           <li><a href="#rules">Booking rules</a></li>
           <li><a href="#orgs">Clubs &amp; orgs</a></li>
-          <li><a href="#pricing">Pricing</a></li>
           <li><a href="#database">Database design</a></li>
         </ul>
       </nav>
@@ -89,93 +88,94 @@
           <p>Orgs can also post and promote events on the app, for example "Spikeball Club hosting a session at 1 pm on Ens Field." That turns CourtConnect into a light events and discovery feed on top of the booking system.</p>
         </section>
 
-        <section id="pricing">
-          <h2>Pricing</h2>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th scope="col">Who</th><th scope="col">Weekdays</th><th scope="col">Weekends</th></tr></thead>
-              <tbody>
-                <tr><td>Students</td><td>Free</td><td>Small fee</td></tr>
-                <tr><td>Clubs &amp; orgs</td><td>Free</td><td>Small fee</td></tr>
-                <tr><td>General public (future)</td><td>Fee</td><td>Fee</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>Opening to the public later would generate revenue for the university from facilities it already runs.</p>
-        </section>
-
         <section id="database">
           <h2>Database design</h2>
-          <p>Six tables hold everything. Users make reservations for facilities; organizations host events at facilities; payments are recorded only for weekend or public reservations.</p>
+          <p>Seven tables hold everything. Users make reservations for facilities; each facility has weekly bookable hours; organizations post events, each held on one reservation; and no-shows are recorded as penalties.</p>
 
           <figure>
-            <div class="placeholder tall" role="img" aria-label="ER diagram placeholder"><strong>ER diagram</strong><span>Entity-relationship diagram of the six tables below.</span></div>
-            <figcaption>CourtConnect entity-relationship diagram.</figcaption>
+            <a href="images/erd.png"><img src="images/erd.png" alt="CourtConnect entity-relationship diagram showing the users, facilities, facility_schedules, reservations, organizations, events and penalties tables and the keys that link them" width="2224" height="1280"></a>
+            <figcaption>CourtConnect entity-relationship diagram. Click to open full size.</figcaption>
           </figure>
 
           <div class="schema">
             <div class="entity">
-              <h3>Users</h3>
+              <h3>users</h3>
               <ul>
-                <li><span>student_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>name</span><span></span></li>
-                <li><span>email</span><span></span></li>
-                <li><span>role</span><span>student, club, public</span></li>
+                <li><span>user_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>sdsu_red_id</span><span>unique</span></li>
+                <li><span>email</span><span>unique</span></li>
+                <li><span>full_name</span><span></span></li>
+                <li><span>role</span><span>student, club, admin</span></li>
                 <li><span>status</span><span>active, warned, banned</span></li>
+                <li><span>safety_quiz_passed</span><span></span></li>
                 <li><span>no_show_count</span><span></span></li>
+                <li><span>suspended_until</span><span></span></li>
+                <li><span>created_at</span><span></span></li>
               </ul>
             </div>
             <div class="entity">
-              <h3>Facilities</h3>
+              <h3>facilities</h3>
               <ul>
                 <li><span>facility_id<span class="key pk">PK</span></span><span></span></li>
                 <li><span>name</span><span></span></li>
-                <li><span>type</span><span>court, field, pool lane, gym</span></li>
+                <li><span>type</span><span>court, field, pool, gym, studio</span></li>
+                <li><span>location_area</span><span></span></li>
                 <li><span>capacity</span><span></span></li>
-                <li><span>location</span><span></span></li>
+                <li><span>is_active</span><span></span></li>
               </ul>
             </div>
             <div class="entity">
-              <h3>Reservations</h3>
+              <h3>facility_schedules</h3>
+              <ul>
+                <li><span>schedule_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>facility_id<span class="key fk">FK</span></span><span>facilities</span></li>
+                <li><span>day_of_week</span><span>0 = Sunday</span></li>
+                <li><span>bookable_start</span><span></span></li>
+                <li><span>bookable_end</span><span></span></li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>reservations</h3>
               <ul>
                 <li><span>reservation_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>user_id<span class="key fk">FK</span></span><span>Users</span></li>
-                <li><span>facility_id<span class="key fk">FK</span></span><span>Facilities</span></li>
-                <li><span>date</span><span></span></li>
-                <li><span>time_slot</span><span></span></li>
+                <li><span>user_id<span class="key fk">FK</span></span><span>users</span></li>
+                <li><span>facility_id<span class="key fk">FK</span></span><span>facilities</span></li>
+                <li><span>start_time</span><span></span></li>
+                <li><span>end_time</span><span></span></li>
+                <li><span>check_in_time</span><span></span></li>
                 <li><span>status</span><span>booked, checked-in, no-show, cancelled</span></li>
+                <li><span>created_at</span><span></span></li>
               </ul>
             </div>
             <div class="entity">
-              <h3>Organizations</h3>
+              <h3>organizations</h3>
               <ul>
                 <li><span>org_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>org_name</span><span></span></li>
-                <li><span>type</span><span>club, frat, sorority</span></li>
-                <li><span>contact_user_id<span class="key fk">FK</span></span><span>Users</span></li>
+                <li><span>name</span><span></span></li>
+                <li><span>category</span><span>club, fraternity, sorority</span></li>
+                <li><span>contact_user_id<span class="key fk">FK</span></span><span>users</span></li>
               </ul>
             </div>
             <div class="entity">
-              <h3>Events</h3>
+              <h3>events</h3>
               <ul>
                 <li><span>event_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>org_id<span class="key fk">FK</span></span><span>Organizations</span></li>
-                <li><span>facility_id<span class="key fk">FK</span></span><span>Facilities</span></li>
-                <li><span>date</span><span></span></li>
-                <li><span>time</span><span></span></li>
+                <li><span>reservation_id<span class="key fk">FK</span></span><span>reservations</span></li>
+                <li><span>org_id<span class="key fk">FK</span></span><span>organizations</span></li>
+                <li><span>title</span><span></span></li>
                 <li><span>description</span><span></span></li>
+                <li><span>is_public_join</span><span>any student can join</span></li>
               </ul>
             </div>
             <div class="entity">
-              <h3>Payments</h3>
+              <h3>penalties</h3>
               <ul>
-                <li><span>payment_id<span class="key pk">PK</span></span><span></span></li>
-                <li><span>user_id<span class="key fk">FK</span></span><span>Users</span></li>
-                <li><span>amount</span><span></span></li>
-                <li><span>date</span><span></span></li>
-                <li><span>reservation_id<span class="key fk">FK</span></span><span>Reservations</span></li>
+                <li><span>penalty_id<span class="key pk">PK</span></span><span></span></li>
+                <li><span>user_id<span class="key fk">FK</span></span><span>users</span></li>
+                <li><span>reservation_id<span class="key fk">FK</span></span><span>reservations</span></li>
+                <li><span>issued_at</span><span></span></li>
+                <li><span>reason</span><span></span></li>
               </ul>
-              <p class="note">Only created for weekend or public use.</p>
             </div>
           </div>
           <p>Full column types, constraints and example queries are in the <a href="technical.html">technical document</a>.</p>

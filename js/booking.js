@@ -206,11 +206,6 @@
     return DAY_NAMES[date.getDay()] + ", " + MONTH_NAMES[date.getMonth()] + " " + date.getDate();
   }
 
-  function isWeekend(dateKey) {
-    var day = fromKey(dateKey).getDay();
-    return day === 0 || day === 6;
-  }
-
   function isOpen(space, dateKey, slot) {
     var hours = space.hours[fromKey(dateKey).getDay()];
     return !!hours && slot >= hours[0] && slot + SLOT_HOURS <= hours[1];
@@ -930,9 +925,7 @@
     emptyLine.textContent = anyOpen ? "" : venue.name + " is closed on " + dayName + ". Pick another day or facility.";
 
     var notes = [];
-    if (dayReservation) notes.push("You've used your one reservation for " + dayName + ": " + spaceIndex[dayReservation.facilityId].name + ", " + formatSlot(dayReservation.slot) + ". Cancel it to pick a different slot.");
-    if (isWeekend(dateKey)) notes.push("Weekend reservations carry a small fee.");
-    note.textContent = notes.join(" ");
+    if (dayReservation) notes.push("You've used your one reservation for " + dayName + ": " + spaceIndex[dayReservation.facilityId].name + ", " + formatSlot(dayReservation.slot) + ". Cancel it to pick a different slot.");    note.textContent = notes.join(" ");
     note.hidden = !notes.length;
   }
 
@@ -1054,13 +1047,10 @@
 
   function confirmReserve(space, slot) {
     var dateKey = state.dateKey;
-    var fee = isWeekend(dateKey)
-      ? "Weekend reservations carry a small fee. Payments aren't set up yet, so nothing is charged."
-      : "Weekday reservations are free.";
     confirmWith({
       title: "Reserve this space?",
       facts: factsFor(space, dateKey, slot),
-      note: fee + " This is your one reservation for the day. Check in when you arrive or it counts as a no-show.",
+      note: "This is your one reservation for the day. Check in when you arrive or it counts as a no-show.",
       confirm: "Reserve",
       dismiss: "Not now",
       action: function () {
