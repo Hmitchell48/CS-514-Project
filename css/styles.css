@@ -1137,6 +1137,13 @@ table.data code { font-size: 0.9em; }
   gap: var(--s-4);
 }
 .post .placeholder { min-height: 180px; }
+.post .headshot {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  object-position: center 30%;
+  border-radius: var(--radius);
+}
 .post .role { color: var(--field); font-weight: 600; margin: -0.6rem 0 var(--s-2); }
 @media (max-width: 720px) {
   .post { grid-template-columns: 1fr; gap: var(--s-2); }

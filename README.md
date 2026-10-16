@@ -40,8 +40,8 @@ The facility list, hours, slot length and reservation windows are constants at t
 ## Editing
 
 - Search for `[TODO` to find content that still needs writing.
-- Image spots are `<div class="placeholder">` boxes. Swap one for an image, e.g.
-  `<img src="images/hero.jpg" alt="Students playing basketball at the ARC">`, and put the files in an `images/` folder.
+- Image spots that still need a picture are `<div class="placeholder">` boxes. Swap one for an `<img>` and put the file in `images/`. Name headshots `first-last.jpg` and use `class="headshot"`.
+- Every page loads `css/styles.css?v=3`. After changing the stylesheet, bump the number in all seven pages so browsers don't keep the old copy.
 - The header and footer are copied into every page. If you change the nav, change it in all seven files.
 - The technical PDF link expects `docs/CourtConnect-Technical.pdf`.
 

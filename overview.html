@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=2">
+  <link rel="stylesheet" href="css/styles.css?v=3">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -57,16 +57,16 @@
       <div class="content">
         <section id="what">
           <h2>What it does</h2>
-          <p>CourtConnect puts every athletic space at SDSU in one reservation system: basketball and volleyball courts, indoor soccer, football and soccer fields, pool lanes, the boxing gym and the yoga gym. Students book a time slot, show up, and check in. Clubs and organizations can book larger spaces for events and post them to a shared events feed.</p>
+          <p>CourtConnect puts every athletic space at SDSU in one reservation system: basketball, volleyball, pickleball, tennis and racquetball courts, turf fields, pool lanes, climbing walls, fitness studios and bowling lanes. Students book a 2-hour slot, show up, and check in. Clubs and organizations can book larger spaces for events and post them to a shared events feed.</p>
         </section>
 
         <section id="start">
           <h2>Getting started</h2>
           <ol class="steps">
-            <li><strong>Register</strong>Sign up with your SDSU student ID and email.</li>
+            <li><strong>Register</strong>Sign up with your RedID and SDSU email.</li>
             <li><strong>Pass the facility quiz</strong>Fill out the access form and pass a short quiz on safety rules and facility etiquette. You can't reserve until you pass.</li>
-            <li><strong>Reserve a space</strong>Pick a facility and an open time slot inside a reservation window.</li>
-            <li><strong>Check in when you arrive</strong>Check in at the facility to confirm you used the reservation. If you don't, it counts as a no-show.</li>
+            <li><strong>Reserve a space</strong>Pick a facility and an open 2-hour slot inside a reservation window, up to 7 days ahead.</li>
+            <li><strong>Check in when you arrive</strong>Check in from 15 minutes before your slot until it ends. If you don't, it counts as a no-show.</li>
           </ol>
         </section>
 
@@ -75,17 +75,17 @@
           <p>The rules keep spaces fair to share and discourage booking a court you won't use.</p>
           <dl class="rules">
             <div><dt>1 per day</dt><dd>Each student can hold one reservation per day.</dd></div>
-            <div><dt>Set windows</dt><dd>Reservations are only taken at set times of day. Outside those windows, spaces are first come, first served.</dd></div>
+            <div><dt>Set windows</dt><dd>Reservations are taken from 7 to 11 am and from 3 to 9 pm. From 11 am to 3 pm every space is first come, first served.</dd></div>
             <div><dt>1 no-show</dt><dd>A temporary lockout from reserving.</dd></div>
             <div><dt>3 no-shows</dt><dd>A permanent lockout from the app.</dd></div>
           </dl>
-          <div class="todo"><p><strong>[TODO: reservation windows]</strong> List the exact reserved time windows and the length of a temporary lockout.</p></div>
+          <div class="todo"><p><strong>[TODO: lockout length]</strong> Set the length of a temporary lockout. The technical document uses 7 days as a placeholder.</p></div>
         </section>
 
         <section id="orgs">
           <h2>Clubs &amp; organizations</h2>
           <p>Clubs, fraternities, sororities and other student orgs can reserve larger spaces, like a full field or gym, for events without going through the school directly.</p>
-          <p>Orgs can also post and promote events on the app, for example "Spikeball Club hosting a session at 1 pm on Ens Field." That turns CourtConnect into a light events and discovery feed on top of the booking system.</p>
+          <p>Orgs can also post and promote events on the app, for example "Spikeball Club hosting a session at 1 pm on ENS 700 Field." That turns CourtConnect into a light events and discovery feed on top of the booking system.</p>
         </section>
 
         <section id="database">
@@ -93,7 +93,7 @@
           <p>Seven tables hold everything. Users make reservations for facilities; each facility has weekly bookable hours; organizations post events, each held on one reservation; and no-shows are recorded as penalties.</p>
 
           <figure>
-            <a href="images/erd.png"><img src="images/erd.png" alt="CourtConnect entity-relationship diagram showing the users, facilities, facility_schedules, reservations, organizations, events and penalties tables and the keys that link them" width="2224" height="1280"></a>
+            <a href="images/erd.png" target="_blank" rel="noopener"><img class="diagram" src="images/erd.png" alt="CourtConnect entity-relationship diagram showing the users, facilities, facility_schedules, reservations, organizations, events and penalties tables and the keys that link them" width="2224" height="1280"></a>
             <figcaption>CourtConnect entity-relationship diagram. Click to open full size.</figcaption>
           </figure>
 
@@ -118,7 +118,7 @@
               <ul>
                 <li><span>facility_id<span class="key pk">PK</span></span><span></span></li>
                 <li><span>name</span><span></span></li>
-                <li><span>type</span><span>court, field, pool, gym, studio</span></li>
+                <li><span>type</span><span>court, field, pool, gym, studio, other</span></li>
                 <li><span>location_area</span><span></span></li>
                 <li><span>capacity</span><span></span></li>
                 <li><span>is_active</span><span></span></li>
