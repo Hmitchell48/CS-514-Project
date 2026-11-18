@@ -241,11 +241,15 @@
     return null;
   }
 
-  function canCheckIn(reservation) {
-    var now = new Date();
+  function checkInOpens(reservation) {
     var opens = slotStart(reservation.date, reservation.slot);
     opens.setMinutes(opens.getMinutes() - CHECK_IN_EARLY_MINUTES);
-    return now >= opens && now < slotEnd(reservation.date, reservation.slot);
+    return opens;
+  }
+
+  function canCheckIn(reservation) {
+    var now = new Date();
+    return now >= checkInOpens(reservation) && now < slotEnd(reservation.date, reservation.slot);
   }
 
   // Stored statuses are booked, checked-in and cancelled. A booking that ends
@@ -473,6 +477,7 @@
   var dialogConfirm = byId("booking-dialog-confirm");
   var dialogDismiss = byId("booking-dialog-dismiss");
   var toastRegion = byId("booking-toast");
+  var nextCard = byId("booking-next");
 
   var state = {
     user: null,
@@ -761,6 +766,7 @@
       if (state.user !== user) return;
       state.taken = results[0];
       state.mine = results[1];
+      renderNext();
       renderDays();
       renderSchedule();
       renderMine();
@@ -986,6 +992,123 @@
       mineList.appendChild(item);
     });
   }
+
+  // ---------- Next reservation (check-in card) ----------
+  // The card at the top of the app. It shows the student's next reservation
+  // that hasn't ended, counts down to check-in, and turns into a Check in
+  // button once check-in opens, so nobody has to scroll down at the court.
+  var renderedNext = ""; // "reservationId|phase" of what the card is showing
+
+  function nextReservation() {
+    var now = new Date();
+    var next = null;
+    state.mine.forEach(function (reservation) {
+      var status = statusOf(reservation);
+      if ((status !== "booked" && status !== "checked-in") || !spaceIndex[reservation.facilityId]) return;
+      if (slotEnd(reservation.date, reservation.slot) <= now) return;
+      if (!next || reservation.date < next.date || (reservation.date === next.date && reservation.slot < next.slot)) {
+        next = reservation;
+      }
+    });
+    return next;
+  }
+
+  // later: check-in hasn't opened. open: student can check in now.
+  function phaseOf(reservation) {
+    if (reservation.status === "checked-in") return "checked-in";
+    return canCheckIn(reservation) ? "open" : "later";
+  }
+
+  // "45 min" or "2 h 15 min"
+  function formatWait(ms) {
+    var minutes = Math.max(1, Math.ceil(ms / 60000));
+    if (minutes < 60) return minutes + " min";
+    var hours = Math.floor(minutes / 60);
+    var rest = minutes % 60;
+    return hours + " h" + (rest ? " " + rest + " min" : "");
+  }
+
+  function relativeDay(dateKey) {
+    var today = toKey(new Date());
+    if (dateKey === today) return "Today";
+    if (dateKey === addDays(today, 1)) return "Tomorrow";
+    return formatDate(dateKey);
+  }
+
+  function nextStatus(reservation, phase) {
+    var now = new Date();
+    if (phase === "checked-in") {
+      var when = reservation.checkInTime ? "Checked in at " + formatTime(new Date(reservation.checkInTime)) : "You're checked in";
+      return when + ". Your slot ends at " + formatHour(reservation.slot + SLOT_HOURS) + ".";
+    }
+    if (phase === "open") {
+      return "Check-in is open for " + formatWait(slotEnd(reservation.date, reservation.slot) - now) +
+        " more. If you don't check in, it counts as a no-show.";
+    }
+    var opens = checkInOpens(reservation);
+    if (opens - now > 24 * 60 * 60 * 1000) {
+      return "Check-in opens " + formatDate(toKey(opens)) + " at " + formatTime(opens) + ".";
+    }
+    return "Check-in opens in " + formatWait(opens - now) + ", at " + formatTime(opens) + ".";
+  }
+
+  function renderNext() {
+    var reservation = nextReservation();
+    nextCard.textContent = "";
+    if (!reservation) {
+      nextCard.hidden = true;
+      renderedNext = "";
+      return;
+    }
+
+    var phase = phaseOf(reservation);
+    var space = spaceIndex[reservation.facilityId];
+    var titles = { "later": "Your next reservation", "open": "Time to check in", "checked-in": "You're checked in" };
+    renderedNext = reservation.id + "|" + phase;
+    nextCard.className = "next-up is-" + phase;
+    nextCard.hidden = false;
+
+    var info = el("div", "next-info");
+    var title = el("h4", "", titles[phase]);
+    title.id = "booking-next-title";
+    title.tabIndex = -1;
+    info.appendChild(title);
+    info.appendChild(el("p", "next-space", space.name + " · " + space.detail));
+    info.appendChild(el("p", "next-when", relativeDay(reservation.date) + ", " + formatSlot(reservation.slot) +
+      " · " + space.venue.name + ", " + space.venue.location));
+    var status = el("p", "next-status", nextStatus(reservation, phase));
+    status.id = "booking-next-status";
+    info.appendChild(status);
+    nextCard.appendChild(info);
+
+    if (phase === "open") {
+      var checkIn = button("btn", "Check in");
+      checkIn.setAttribute("aria-label", "Check in: " + describe(reservation));
+      checkIn.addEventListener("click", function () {
+        checkIn.disabled = true;
+        run(api.checkIn(state.user.studentId, reservation.id), "Checked in: " + describe(reservation) + ".", "#booking-next-title");
+      });
+      nextCard.appendChild(checkIn);
+    }
+  }
+
+  // Keeps the countdown current. When the card should change (check-in opens,
+  // the slot ends), redraw everything so the schedule and list match it too.
+  function tick() {
+    if (!state.user || app.hidden) return;
+    var reservation = nextReservation();
+    var showing = reservation ? reservation.id + "|" + phaseOf(reservation) : "";
+    if (showing !== renderedNext) {
+      refresh();
+    } else if (reservation) {
+      byId("booking-next-status").textContent = nextStatus(reservation, phaseOf(reservation));
+    }
+  }
+
+  setInterval(tick, 30000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) tick();
+  });
 
   // Runs a change, reports how it went, then redraws. The control that started
   // it has been replaced by then, so focus moves to focusSelector if it is on

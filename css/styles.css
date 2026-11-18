@@ -709,6 +709,31 @@ button.slot-body:active { transform: scale(0.97); }
 .badge.checked-in { background: var(--field); color: #fff; }
 .badge.no-show { background: var(--scarlet); color: #fff; }
 
+/* Next reservation / check-in card */
+.next-up {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid var(--rule-dark);
+  border-left: 4px solid #fff;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.next-up.is-open { border-left-color: var(--gold); background: rgba(242, 193, 78, 0.1); }
+.next-up.is-checked-in { border-left-color: var(--field); }
+.next-info { min-width: 0; }
+.next-up h4 { margin: 0 0 0.4rem; font-size: var(--step-1); }
+.next-up h4:focus { outline: none; }
+.next-up p { max-width: none; margin: 0; }
+.next-space { color: #fff; font-size: 1.1rem; font-weight: 700; }
+.next-when { color: #c4d1cc; font-size: 0.95rem; line-height: 1.5; }
+.next-up .next-status { margin-top: 0.5rem; color: #fff; font-weight: 600; }
+.next-up .btn { padding: 0.8rem 2.2rem; font-size: 1.1rem; }
+
 /* Confirm dialog and toast */
 .booking-dialog {
   width: min(30rem, calc(100% - 2rem));
@@ -833,6 +858,9 @@ button.slot-body:active { transform: scale(0.97); }
   .reservation-list li { display: block; padding: var(--s-2); }
   .reservation-list .actions { margin-top: var(--s-2); }
   .reservation-list .actions .btn { flex: 1; }
+
+  .next-up { display: block; padding: var(--s-2); }
+  .next-up .btn { width: 100%; margin-top: var(--s-2); }
 
   .booking-dialog {
     width: 100%;
