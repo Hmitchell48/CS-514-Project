@@ -253,6 +253,9 @@ async function signUp(request, env) {
       !/^[^\s@]+@sdsu\.edu$/.test(email) || password.length < 8 || password.length > MAX_PASSWORD) {
     throw new ApiError(400, "bad-request");
   }
+  // Fail before writing anything if tokens can't be signed, so a broken
+  // SESSION_SECRET can't leave behind an account the student never got.
+  await hmacKey(env);
 
   var user;
   try {
