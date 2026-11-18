@@ -1,0 +1,24 @@
+name = "courtconnect-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# Sites allowed to call the API from a browser (comma-separated).
+# http://localhost and http://127.0.0.1 on any port are always allowed.
+ALLOWED_ORIGINS = "https://hmitchell48.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "courtconnect"
+# Paste the id that `npx wrangler d1 create courtconnect` prints.
+database_id = "acabd00f-2b8b-4e77-8896-85bfa0f3e7a1"
+
+# SESSION_SECRET signs log-in tokens. Set it with:
+#   npx wrangler secret put SESSION_SECRET
+# For `npm run dev`, put SESSION_SECRET=... in api/.dev.vars (not committed).
+
+# Per-IP limit on /api/login and /api/signup: 10 attempts a minute.
+[[ratelimits]]
+name = "AUTH_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

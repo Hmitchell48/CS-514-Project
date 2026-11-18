@@ -1,0 +1,22 @@
+{
+  "name": "courtconnect-api",
+  "private": true,
+  "description": "Cloudflare Worker + D1 backend for the CourtConnect booking page",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "seed:build": "node scripts/build-seed.mjs",
+    "db:schema:local": "wrangler d1 execute courtconnect --local --file=schema.sql",
+    "db:seed:local": "node scripts/build-seed.mjs && wrangler d1 execute courtconnect --local --file=seed.sql",
+    "db:schema:remote": "wrangler d1 execute courtconnect --remote --file=schema.sql",
+    "db:seed:remote": "node scripts/build-seed.mjs --remote && wrangler d1 execute courtconnect --remote --file=seed.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261117.1": true
+  }
+}

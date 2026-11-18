@@ -1,161 +1,32 @@
 // Court booking (home page)
 //
-// Runs entirely in the browser until the database is connected: reservations
-// are kept in localStorage, and other students' bookings and club events are
-// generated sample data. Everything that reads or writes data goes through
-// `api` below, so connecting the database means rewriting that object only.
+// Accounts, reservations and club events live in the Cloudflare D1 database,
+// reached through the Worker in api/. Everything that reads or writes data
+// goes through `api` below. Only the signed-in session is kept in the browser.
 (function () {
   var root = document.getElementById("booking");
   if (!root) return;
 
-  // ---------- Test accounts ----------
-  // Sign-up needs the Users table, so until it exists these are the only way
-  // past the sign-up wall. Delete them once api.logIn talks to the database.
-  var TEST_ACCOUNTS = [
-    { studentId: "800000001", name: "Dev Tester", email: "dev@sdsu.edu", password: "courtconnect-dev" },
-    { studentId: "800000002", name: "Second Tester", email: "dev2@sdsu.edu", password: "courtconnect-dev" }
-  ];
+  // ---------- API ----------
+  // The Cloudflare Worker in api/ that talks to the D1 database. Running the
+  // site from localhost uses `npm run dev` in api/ instead.
+  var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  var API_BASE = LOCAL ? "http://localhost:8787" : "https://courtconnect-api.hudsonmitchell58.workers.dev";
 
-  // ---------- Booking rules ----------
-  var SLOTS = [7, 9, 11, 13, 15, 17, 19]; // slot start hours, 24-hour clock
-  var SLOT_HOURS = 2;
-  var WALKUP_SLOTS = [11, 13];            // outside the reservation windows
-  var DAYS_AHEAD = 7;                     // how far ahead a student can book
-  var HISTORY_DAYS = 7;                   // how far back "Your reservations" goes
-  var CHECK_IN_EARLY_MINUTES = 15;
-
-  // ---------- Facilities ----------
-  // Every space Aztec Recreation lists at arc.sdsu.edu. Hours are [open, close]
-  // on a 24-hour clock, from the fall 2026 schedule at arc.sdsu.edu/hours.
-  // `spots` is how many students can hold the same slot (default 1); those
-  // numbers are placeholders until the Facilities table sets real capacities.
-  function week(monThu, fri, sat, sun) {
-    return [sun, monThu, monThu, monThu, monThu, fri, sat];
-  }
-
-  function numbered(id, name, detail, count) {
-    var spaces = [];
-    for (var i = 1; i <= count; i++) {
-      spaces.push({ id: id + "-" + i, name: name + " " + i, detail: detail });
-    }
-    return spaces;
-  }
-
-  var FIELD_HOURS = week([6, 23], [6, 23], [8, 23], [8, 23]);
-  var CLIMBING_HOURS = week([14, 21], [13, 18], [13, 18], [13, 18]);
-
-  var VENUES = [
-    {
-      id: "arc",
-      name: "Aztec Recreation Center",
-      location: "55th Street",
-      hours: week([5.5, 24], [5.5, 24], [8, 24], [8, 24]),
-      spaces: numbered("arc-court", "Court", "Basketball", 4).concat([
-        { id: "arc-north-court", name: "North Court", detail: "Volleyball, futsal" },
-        { id: "arc-south-court", name: "South Court", detail: "Pickleball, badminton" },
-        { id: "arc-climbing-wall", name: "Climbing wall", detail: "Top rope, lead", spots: 13, hours: CLIMBING_HOURS },
-        { id: "arc-bouldering-wall", name: "Bouldering wall", detail: "30 routes", spots: 12, hours: CLIMBING_HOURS },
-        { id: "arc-track", name: "Indoor track", detail: "1/8 mile", spots: 30 },
-        { id: "arc-yoga-studio", name: "Yoga Studio", detail: "Fitness studio" },
-        { id: "arc-cycle-studio", name: "Cycle Studio", detail: "Fitness studio" },
-        { id: "arc-mat-studio", name: "Mat Studio", detail: "Fitness studio" },
-        { id: "arc-group-fitness-studio", name: "Group Fitness Studio", detail: "Fitness studio" },
-        { id: "arc-mckenzie-studio", name: "McKenzie Studio", detail: "Fitness studio" },
-        { id: "arc-cardio", name: "Cardio floor", detail: "Cardio equipment", spots: 40 },
-        { id: "arc-weight-training", name: "Weight training", detail: "Free weights, machines", spots: 40 },
-        { id: "arc-olympic-north", name: "Olympic Lifting North", detail: "Platforms, cables", spots: 12 },
-        { id: "arc-olympic-south", name: "Olympic Lifting South", detail: "Platforms", spots: 12 },
-        { id: "arc-turf-zone", name: "Turf Zone", detail: "Functional training", spots: 15 },
-        { id: "arc-fit-zone", name: "Fit Zone", detail: "High intensity training", spots: 15 },
-        { id: "arc-quiet-lounge", name: "Quiet Lounge", detail: "Study, meditation", spots: 20 }
-      ])
-    },
-    {
-      id: "arc-express",
-      name: "ARC Express",
-      location: "Conrad Prebys Aztec Student Union, 3rd floor",
-      hours: week([8, 22], [8, 22], [10, 20], [10, 20]),
-      spaces: [
-        { id: "express-cardio", name: "Cardio equipment", detail: "Treadmills, bikes", spots: 20 },
-        { id: "express-resistance", name: "Resistance training", detail: "Machines, free weights", spots: 20 },
-        { id: "express-functional", name: "Functional training", detail: "Synrgy 360, TRX", spots: 10 }
-      ]
-    },
-    {
-      id: "aquaplex",
-      name: "Aztec Aquaplex",
-      location: "Remington Road",
-      hours: week([9, 21], [9, 19], [9, 19], [9, 19]),
-      spaces: [
-        { id: "aq-competition-pool", name: "Competition pool", detail: "Lap swim", spots: 24 }
-      ].concat(numbered("aq-rec-lane", "Rec pool lane", "Lap swim", 4), [
-        { id: "aq-rec-pool", name: "Recreation pool", detail: "Open swim", spots: 30 },
-        { id: "aq-spa", name: "Spa", detail: "20 person", spots: 20 }
-      ])
-    },
-    {
-      id: "tennis",
-      name: "Aztec Tennis Center",
-      location: "Next to the Aquaplex",
-      hours: week([16, 19], null, [13, 17], [13, 17]),
-      spaces: numbered("tennis-court", "Tennis court", "Tennis", 12)
-    },
-    {
-      id: "lanes",
-      name: "Aztec Lanes",
-      location: "Conrad Prebys Aztec Student Union",
-      hours: week([10, 22], [10, 24], [11, 24], [11, 22]),
-      spaces: numbered("lanes-bowling", "Bowling lane", "Bowling", 12).concat(
-        numbered("lanes-billiards", "Billiards table", "Billiards", 5),
-        numbered("lanes-table-tennis", "Table tennis", "Table tennis", 2)
-      )
-    },
-    {
-      id: "peterson",
-      name: "Peterson Gym",
-      location: "West side of Peterson Gymnasium",
-      hours: week([12, 18], null, null, null),
-      spaces: numbered("pg-racquetball", "Racquetball court", "Racquetball", 6).concat([
-        { id: "pg-mat-room", name: "PG 196 Mat Room", detail: "Open rec", spots: 15 }
-      ])
-    },
-    {
-      id: "outdoor",
-      name: "Fields and outdoor spaces",
-      location: "Across campus",
-      hours: FIELD_HOURS,
-      spaces: [
-        { id: "rec-field", name: "Recreation Field", detail: "Turf, north of PS 12" },
-        { id: "ens-700-field", name: "ENS 700 Field", detail: "Turf, by Calpulli Center" },
-        { id: "aztrack", name: "Aztrack", detail: "1/4 mile, atop PS 7", spots: 30 },
-        { id: "arc-courtyard", name: "ARC Courtyard", detail: "Event space" }
-      ]
-    },
-    {
-      id: "mbac",
-      name: "Mission Bay Aquatic Center",
-      location: "Santa Clara Point, Mission Bay",
-      hours: week([9, 17], [9, 17], [9, 17], [9, 17]),
-      spaces: [
-        { id: "mbac-watersports", name: "Watersports", detail: "Sail, surf, paddle", spots: 20 }
-      ]
-    }
-  ];
-
-  // Sample club events, by weekday (0 = Sunday). Stand-in for the Events table.
-  var SAMPLE_EVENTS = [
-    { spaceId: "ens-700-field", day: 2, slots: [13], org: "Spikeball Club" },
-    { spaceId: "arc-north-court", day: 2, slots: [17, 19], org: "Volleyball Club" },
-    { spaceId: "aq-competition-pool", day: 3, slots: [17], org: "Swim Club" },
-    { spaceId: "rec-field", day: 4, slots: [17, 19], org: "Soccer Club" }
-  ];
+  // ---------- Facilities and booking rules ----------
+  // Shared with the API and the seed script, in js/facilities.js.
+  var shared = window.CourtConnectFacilities;
+  var SLOTS = shared.SLOTS;
+  var SLOT_HOURS = shared.SLOT_HOURS;
+  var DAYS_AHEAD = shared.DAYS_AHEAD;
+  var HISTORY_DAYS = shared.HISTORY_DAYS;
+  var CHECK_IN_EARLY_MINUTES = shared.CHECK_IN_EARLY_MINUTES;
+  var VENUES = shared.VENUES;
 
   var spaceIndex = {};
   VENUES.forEach(function (venue) {
     venue.spaces.forEach(function (space) {
       space.venue = venue;
-      space.spots = space.spots || 1;
-      space.hours = space.hours || venue.hours;
       spaceIndex[space.id] = space;
     });
   });
@@ -218,7 +89,7 @@
   }
 
   function isWalkup(slot) {
-    return WALKUP_SLOTS.indexOf(slot) !== -1;
+    return shared.isWalkup(slot);
   }
 
   function hasStarted(dateKey, slot) {
@@ -230,15 +101,10 @@
     return dateKey >= today && dateKey < addDays(today, DAYS_AHEAD);
   }
 
+  // The club holding the slot, from the events the API sent for that day.
   function eventAt(space, dateKey, slot) {
-    var day = fromKey(dateKey).getDay();
-    for (var i = 0; i < SAMPLE_EVENTS.length; i++) {
-      var event = SAMPLE_EVENTS[i];
-      if (event.spaceId === space.id && event.day === day && event.slots.indexOf(slot) !== -1) {
-        return event.org;
-      }
-    }
-    return null;
+    if (dateKey !== state.eventsDate) return null;
+    return state.events[slotKey(space.id, slot)] || null;
   }
 
   function checkInOpens(reservation) {
@@ -252,8 +118,8 @@
     return now >= checkInOpens(reservation) && now < slotEnd(reservation.date, reservation.slot);
   }
 
-  // Stored statuses are booked, checked-in and cancelled. A booking that ends
-  // without a check-in reads as a no-show; the database will store that itself.
+  // A booking that ends without a check-in reads as a no-show here, even
+  // before the database marks it no-show.
   function statusOf(reservation) {
     if (reservation.status === "booked" && new Date() >= slotEnd(reservation.date, reservation.slot)) {
       return "no-show";
@@ -266,7 +132,6 @@
   }
 
   // ---------- Storage ----------
-  var RESERVATIONS_KEY = "courtconnect.reservations";
   var SESSION_KEY = "courtconnect.session";
   var memory = {};
 
@@ -291,142 +156,90 @@
     }
   }
 
-  // ---------- Sample data ----------
-  // Fills the schedule with other students' bookings so it isn't empty. The
-  // result is fixed for a given space, day and slot.
-  function hash(text) {
-    var h = 2166136261;
-    for (var i = 0; i < text.length; i++) {
-      h = Math.imul(h ^ text.charCodeAt(i), 16777619);
-    }
-    return h >>> 0;
-  }
-
-  function sampleTaken(space, dateKey, slot) {
-    var roll = hash(space.id + dateKey + slot) % 100;
-    if (space.spots === 1) return roll < 35 ? 1 : 0;
-    if (roll >= 94) return space.spots;
-    return Math.floor(space.spots * roll / 130);
-  }
-
   // ---------- Data access ----------
-  // Every method returns a promise so a fetch() call can replace its body.
+  // Every method returns a promise. Failures reject with an Error whose `code`
+  // is a key of MESSAGES; the API sends the same codes.
   function fail(code) {
     var error = new Error(code);
     error.code = code;
     return Promise.reject(error);
   }
 
-  function findReservation(all, studentId, reservationId) {
-    for (var i = 0; i < all.length; i++) {
-      if (all[i].id === reservationId && all[i].userId === studentId) return all[i];
-    }
-    return null;
+  function request(method, path, body) {
+    var headers = {};
+    if (body) headers["Content-Type"] = "application/json";
+    if (state.user && state.user.token) headers.Authorization = "Bearer " + state.user.token;
+    return fetch(API_BASE + path, {
+      method: method,
+      headers: headers,
+      body: body ? JSON.stringify(body) : undefined
+    }).catch(function () {
+      return fail("offline");
+    }).then(function (response) {
+      return response.json().catch(function () {
+        return {};
+      }).then(function (data) {
+        if (response.ok) return data;
+        return fail(data.error || "unknown");
+      });
+    });
   }
 
+  // Signing up or logging in resolves with the user plus their session token.
+  function withToken(data) {
+    var user = data.user;
+    user.token = data.token;
+    return user;
+  }
+
+  // The API reads the student from the session token, so the studentId
+  // arguments below are only kept so the callers don't change.
   var api = {
-    // account: { name, studentId, email, password }. Resolve with the new user.
+    // account: { name, studentId, email, password }
     signUp: function (account) {
-      return fail("no-database");
+      return request("POST", "/api/signup", account).then(withToken);
     },
 
     logIn: function (email, password) {
-      for (var i = 0; i < TEST_ACCOUNTS.length; i++) {
-        var account = TEST_ACCOUNTS[i];
-        if (account.email === email && account.password === password) {
-          return Promise.resolve({ studentId: account.studentId, name: account.name, email: account.email });
-        }
-      }
-      return fail("bad-credentials");
+      return request("POST", "/api/login", { email: email, password: password }).then(withToken);
     },
 
-    // How many students hold each slot that day, keyed by slotKey().
+    // { taken: { slotKey: students holding it }, events: { slotKey: club } }
     getDay: function (dateKey) {
-      var taken = {};
-      VENUES.forEach(function (venue) {
-        venue.spaces.forEach(function (space) {
-          SLOTS.forEach(function (slot) {
-            var count = sampleTaken(space, dateKey, slot);
-            if (count) taken[slotKey(space.id, slot)] = count;
-          });
-        });
-      });
-      read(RESERVATIONS_KEY, []).forEach(function (reservation) {
-        if (reservation.date === dateKey && reservation.status !== "cancelled") {
-          var key = slotKey(reservation.facilityId, reservation.slot);
-          taken[key] = (taken[key] || 0) + 1;
-        }
-      });
-      return Promise.resolve(taken);
+      return request("GET", "/api/day?date=" + encodeURIComponent(dateKey));
     },
 
     listReservations: function (studentId) {
-      return Promise.resolve(read(RESERVATIONS_KEY, []).filter(function (reservation) {
-        return reservation.userId === studentId && reservation.status !== "cancelled";
-      }));
+      return request("GET", "/api/reservations");
     },
 
     reserve: function (studentId, spaceId, dateKey, slot) {
-      var space = spaceIndex[spaceId];
-      if (!space || SLOTS.indexOf(slot) === -1 || !inBookingRange(dateKey) || !isOpen(space, dateKey, slot) ||
-          isWalkup(slot) || eventAt(space, dateKey, slot) || hasStarted(dateKey, slot)) {
-        return fail("not-reservable");
-      }
-      var all = read(RESERVATIONS_KEY, []);
-      var hasOneThatDay = all.some(function (reservation) {
-        return reservation.userId === studentId && reservation.date === dateKey && reservation.status !== "cancelled";
-      });
-      if (hasOneThatDay) return fail("daily-limit");
-
-      return api.getDay(dateKey).then(function (taken) {
-        if ((taken[slotKey(spaceId, slot)] || 0) >= space.spots) return fail("slot-taken");
-        var reservation = {
-          id: "r" + Date.now() + Math.floor(Math.random() * 1000),
-          userId: studentId,
-          facilityId: spaceId,
-          date: dateKey,
-          slot: slot,
-          status: "booked",
-          createdAt: new Date().toISOString()
-        };
-        all.push(reservation);
-        write(RESERVATIONS_KEY, all);
-        return reservation;
-      });
+      return request("POST", "/api/reservations", { spaceId: spaceId, date: dateKey, slot: slot });
     },
 
     cancel: function (studentId, reservationId) {
-      var all = read(RESERVATIONS_KEY, []);
-      var reservation = findReservation(all, studentId, reservationId);
-      if (!reservation || reservation.status !== "booked" || hasStarted(reservation.date, reservation.slot)) {
-        return fail("too-late");
-      }
-      reservation.status = "cancelled";
-      write(RESERVATIONS_KEY, all);
-      return Promise.resolve(reservation);
+      return request("POST", "/api/reservations/" + encodeURIComponent(reservationId) + "/cancel");
     },
 
     checkIn: function (studentId, reservationId) {
-      var all = read(RESERVATIONS_KEY, []);
-      var reservation = findReservation(all, studentId, reservationId);
-      if (!reservation || reservation.status !== "booked" || !canCheckIn(reservation)) {
-        return fail("check-in-closed");
-      }
-      reservation.status = "checked-in";
-      reservation.checkInTime = new Date().toISOString(); // check_in_time column
-      write(RESERVATIONS_KEY, all);
-      return Promise.resolve(reservation);
+      return request("POST", "/api/reservations/" + encodeURIComponent(reservationId) + "/check-in");
     }
   };
 
   var MESSAGES = {
-    "no-database": "Sign-up opens once the database is connected. Until then, log in with a test account.",
     "bad-credentials": "That email and password don't match an account.",
+    "email-taken": "There's already an account with that email. Log in instead.",
+    "redid-taken": "There's already an account with that RedID. Log in instead.",
+    "bad-request": "Check the form and try again.",
+    "too-many-attempts": "Too many tries. Wait a minute, then try again.",
+    "signed-out": "Your session has ended. Please log in again.",
+    "suspended": "Your account can't make reservations right now because of missed check-ins.",
     "daily-limit": "You already have a reservation that day. Students can hold one per day.",
     "slot-taken": "Someone else just took that slot. Pick another one.",
     "not-reservable": "That slot can't be reserved.",
     "too-late": "That reservation has already started, so it can't be cancelled.",
     "check-in-closed": "Check-in opens " + CHECK_IN_EARLY_MINUTES + " minutes before your slot and closes when it ends.",
+    "offline": "Can't reach CourtConnect right now. Check your connection and try again.",
     "unknown": "Something went wrong. Please try again."
   };
 
@@ -484,6 +297,8 @@
     venueId: VENUES[0].id,
     dateKey: toKey(new Date()),
     taken: {},
+    events: {},
+    eventsDate: null,
     mine: []
   };
 
@@ -599,13 +414,15 @@
     });
   }
 
-  function signOut() {
+  // message: shown on the log-in form, e.g. when the session has expired.
+  function signOut(message) {
     state.user = null;
     write(SESSION_KEY, null);
     toast("");
     app.hidden = true;
     gate.hidden = false;
     showGateView("login");
+    setFormStatus(loginForm, typeof message === "string" ? message : "");
     gateTitle.focus();
   }
 
@@ -764,12 +581,21 @@
       api.listReservations(user.studentId)
     ]).then(function (results) {
       if (state.user !== user) return;
-      state.taken = results[0];
+      state.taken = results[0].taken;
+      state.events = results[0].events;
+      state.eventsDate = state.dateKey;
       state.mine = results[1];
       renderNext();
       renderDays();
       renderSchedule();
       renderMine();
+    }).catch(function (error) {
+      if (state.user !== user) return;
+      if (error && error.code === "signed-out") {
+        signOut(messageFor(error));
+      } else {
+        toast(messageFor(error), true);
+      }
     });
   }
 
@@ -1119,6 +945,7 @@
     }).catch(function (error) {
       toast(messageFor(error), true);
     }).then(refresh).then(function () {
+      if (!state.user) return;
       var target = focusSelector && app.querySelector(focusSelector);
       (target || mineTitle).focus({ preventScroll: !target });
     });
@@ -1233,11 +1060,13 @@
     });
   });
 
-  byId("booking-logout").addEventListener("click", signOut);
+  byId("booking-logout").addEventListener("click", function () {
+    signOut();
+  });
 
   // ---------- Start ----------
   var saved = read(SESSION_KEY, null);
-  if (saved && saved.studentId) {
+  if (saved && saved.token) {
     state.user = saved;
     showApp();
   }
