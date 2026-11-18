@@ -192,7 +192,7 @@ addUser("Second Tester", "dev2@sdsu.edu", "student", hashPassword(DEMO_PASSWORD)
 
 var CLUBS = [
   { name: "Spikeball Club", spaceId: "ens-700-field", day: 2, slots: [13], contact: "Riley Spike" },
-  { name: "Volleyball Club", spaceId: "arc-north-court", day: 2, slots: [17, 19], contact: "Jordan Setter" },
+  { name: "Volleyball Club", spaceId: "arc-court-1", day: 2, slots: [17, 19], contact: "Jordan Setter" },
   { name: "Swim Club", spaceId: "aq-competition-pool", day: 3, slots: [17], contact: "Morgan Lane" },
   { name: "Soccer Club", spaceId: "rec-field", day: 4, slots: [17, 19], contact: "Alex Keeper" }
 ];

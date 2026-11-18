@@ -4,6 +4,7 @@
 //
 //   POST /api/signup                       { name, studentId, email, password }
 //   POST /api/login                        { email, password }
+//   POST /api/quiz                         { answers: [i, i, i] } the safety quiz
 //   GET  /api/day?date=YYYY-MM-DD          slot counts and club events for a day
 //   GET  /api/reservations                 the signed-in student's reservations
 //   POST /api/reservations                 { spaceId, date, slot }
@@ -23,6 +24,8 @@ var SLOT_HOURS = rules.SLOT_HOURS;
 var DAYS_AHEAD = rules.DAYS_AHEAD;
 var HISTORY_DAYS = rules.HISTORY_DAYS;
 var CHECK_IN_EARLY_MINUTES = rules.CHECK_IN_EARLY_MINUTES;
+var LOCKOUT_DAYS = rules.LOCKOUT_DAYS;
+var BAN_AFTER_NO_SHOWS = rules.BAN_AFTER_NO_SHOWS;
 
 var TIME_ZONE = "America/Los_Angeles";
 var SESSION_DAYS = 7;
@@ -35,11 +38,13 @@ var MAX_EMAIL = 254;
 var MAX_PASSWORD = 128;
 
 // ---------- Responses ----------
+// extra: more fields for the error body, e.g. which quiz answers were wrong.
 class ApiError extends Error {
-  constructor(status, code) {
+  constructor(status, code, extra) {
     super(code);
     this.status = status;
     this.code = code;
+    this.extra = extra;
   }
 }
 
@@ -218,7 +223,12 @@ async function requireUser(request, env) {
 }
 
 function publicUser(user) {
-  return { studentId: user.sdsu_red_id, name: user.full_name, email: user.email };
+  return {
+    studentId: user.sdsu_red_id,
+    name: user.full_name,
+    email: user.email,
+    quizPassed: user.safety_quiz_passed === 1
+  };
 }
 
 // ---------- Reservations ----------
@@ -318,8 +328,70 @@ async function getDay(url, env) {
   return { taken: taken, events: events };
 }
 
-async function listReservations(request, env) {
+// The safety quiz. Answers are checked here, against js/facilities.js, and a
+// pass is stored in users.safety_quiz_passed, which reserve() requires.
+async function submitQuiz(request, env) {
   var user = await requireUser(request, env);
+  var body = await readBody(request);
+  var answers = body.answers;
+  if (!Array.isArray(answers) || answers.length !== rules.QUIZ.length) throw new ApiError(400, "bad-request");
+
+  var wrong = [];
+  rules.QUIZ.forEach(function (item, index) {
+    if (answers[index] !== item.answer) wrong.push(index);
+  });
+  if (wrong.length) throw new ApiError(400, "quiz-failed", { wrong: wrong });
+
+  var updated = await env.DB.prepare("UPDATE users SET safety_quiz_passed = 1 WHERE user_id = ? RETURNING *")
+    .bind(user.user_id).first();
+  return { user: publicUser(updated) };
+}
+
+// No-shows. A booking whose slot has ended without a check-in becomes
+// 'no-show', gets a penalties row, and the student's standing in users is
+// recomputed from penalties: one no-show is a LOCKOUT_DAYS lockout, and
+// BAN_AFTER_NO_SHOWS of them is a ban. Runs whenever the student loads their
+// reservations or books, so nothing has to run on a timer.
+//
+// The statements go in one D1 batch, which commits all of them or none (D1's
+// form of a transaction), so a penalty is never written without its no-show.
+// Returns the user row as it stands afterwards.
+async function markNoShows(env, user) {
+  var now = nowLocal();
+  var missed = await env.DB.prepare(
+    "SELECT reservation_id FROM reservations " +
+    "WHERE user_id = ? AND status = 'booked' AND end_time <= ? " +
+    "AND reservation_id NOT IN (SELECT reservation_id FROM events)"
+  ).bind(user.user_id, now).all();
+  if (!missed.results.length) return user;
+
+  var statements = [];
+  missed.results.forEach(function (row) {
+    statements.push(env.DB.prepare(
+      "UPDATE reservations SET status = 'no-show' WHERE reservation_id = ? AND status = 'booked'"
+    ).bind(row.reservation_id));
+    // Skipped if a request running at the same moment already wrote it.
+    statements.push(env.DB.prepare(
+      "INSERT INTO penalties (user_id, reservation_id, issued_at, reason) " +
+      "SELECT ?1, ?2, ?3, 'no-show' WHERE NOT EXISTS (SELECT 1 FROM penalties WHERE reservation_id = ?2)"
+    ).bind(user.user_id, row.reservation_id, now));
+  });
+  statements.push(env.DB.prepare(
+    "UPDATE users SET " +
+    "  no_show_count = (SELECT COUNT(*) FROM penalties WHERE user_id = ?1 AND reason LIKE 'no-show%' COLLATE NOCASE), " +
+    "  status = CASE WHEN (SELECT COUNT(*) FROM penalties WHERE user_id = ?1 AND reason LIKE 'no-show%' COLLATE NOCASE) >= ?2 " +
+    "    THEN 'banned' ELSE 'warned' END, " +
+    "  suspended_until = CASE WHEN (SELECT COUNT(*) FROM penalties WHERE user_id = ?1 AND reason LIKE 'no-show%' COLLATE NOCASE) >= ?2 " +
+    "    THEN NULL ELSE ?3 END " +
+    "WHERE user_id = ?1 RETURNING *"
+  ).bind(user.user_id, BAN_AFTER_NO_SHOWS, addMinutes(now, LOCKOUT_DAYS * 24 * 60)));
+
+  var results = await env.DB.batch(statements);
+  return results[results.length - 1].results[0];
+}
+
+async function listReservations(request, env) {
+  var user = await markNoShows(env, await requireUser(request, env));
   var cutoff = addDays(nowLocal().slice(0, 10), -HISTORY_DAYS);
   var result = await env.DB.prepare(
     "SELECT r.*, f.code FROM reservations r JOIN facilities f ON f.facility_id = r.facility_id " +
@@ -331,16 +403,16 @@ async function listReservations(request, env) {
 }
 
 async function reserve(request, env) {
-  var user = await requireUser(request, env);
+  var user = await markNoShows(env, await requireUser(request, env));
   var body = await readBody(request);
   var dateKey = body.date;
   var slot = +body.slot;
   var now = nowLocal();
   var today = now.slice(0, 10);
 
-  if (user.status === "banned" || (user.suspended_until && user.suspended_until > now)) {
-    throw new ApiError(403, "suspended");
-  }
+  if (user.status === "banned") throw new ApiError(403, "banned");
+  if (user.suspended_until && user.suspended_until > now) throw new ApiError(403, "suspended");
+  if (user.safety_quiz_passed !== 1) throw new ApiError(403, "quiz-required");
   if (!isDateKey(dateKey) || SLOTS.indexOf(slot) === -1 || rules.isWalkup(slot) ||
       dateKey < today || dateKey >= addDays(today, DAYS_AHEAD)) {
     throw new ApiError(400, "not-reservable");
@@ -422,6 +494,7 @@ async function route(request, env) {
 
   if (method === "POST" && path === "/api/signup") return signUp(request, env);
   if (method === "POST" && path === "/api/login") return logIn(request, env);
+  if (method === "POST" && path === "/api/quiz") return submitQuiz(request, env);
   if (method === "GET" && path === "/api/day") return getDay(url, env);
   if (method === "GET" && path === "/api/reservations") return listReservations(request, env);
   if (method === "POST" && path === "/api/reservations") return reserve(request, env);
@@ -440,7 +513,7 @@ export default {
     try {
       return json(await route(request, env), 200, cors);
     } catch (error) {
-      if (error instanceof ApiError) return json({ error: error.code }, error.status, cors);
+      if (error instanceof ApiError) return json(Object.assign({ error: error.code }, error.extra), error.status, cors);
       console.error(error);
       return json({ error: "unknown" }, 500, cors);
     }

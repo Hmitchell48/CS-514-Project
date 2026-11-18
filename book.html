@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book a space | CourtConnect</title>
+  <meta name="description" content="Reserve a court, field, pool, lane or studio at SDSU. Pick a facility and a time, lock it in, and check in when you arrive.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=6">
+</head>
+<body class="book-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="5" width="28" height="20" rx="2" fill="#b8132f"/><g fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5v20"/><circle cx="15" cy="15" r="4"/><path d="M1 10h5v10H1M29 10h-5v10h5"/></g></svg>
+        CourtConnect
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a class="nav-cta" href="book.html" aria-current="page">Book a space</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="overview.html">Product overview</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="source.html">Source code</a></li>
+          <li><a href="technical.html">Technical doc</a></li>
+          <li><a href="presentation.html">Presentation</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="booker">
+    <div id="booking">
+      <noscript><p class="booker-noscript">Booking a space needs JavaScript turned on.</p></noscript>
+
+      <!-- Signed out: account, then the safety quiz -->
+      <section class="gate-page" id="booking-gate" aria-labelledby="booking-gate-title">
+        <div class="gate-intro">
+          <ol class="signup-steps" id="booking-steps" aria-label="Getting started">
+            <li data-step="account" aria-current="step"><span>1</span>Create an account</li>
+            <li data-step="quiz"><span>2</span>Pass the safety quiz</li>
+            <li data-step="book"><span>3</span>Book a space</li>
+          </ol>
+          <h1 class="gate-title" id="booking-gate-title" tabindex="-1">Create your account</h1>
+          <p class="gate-lede" id="booking-gate-text">CourtConnect is open to SDSU students. Sign up with your RedID and SDSU email, take a three-question safety quiz, and you're ready to book.</p>
+          <ul class="gate-facts">
+            <li><strong>47</strong> courts, pools, fields, lanes and studios</li>
+            <li><strong>1</strong> free reservation per day</li>
+            <li><strong>7</strong> days ahead you can book</li>
+          </ul>
+          <ul class="gate-rules">
+            <li><strong>Reservation windows.</strong> 7 to 11 am and 3 to 9 pm. From 11 am to 3 pm every space is walk-up.</li>
+            <li><strong>Check in.</strong> From 15 minutes before your slot until it ends.</li>
+            <li><strong>No-shows.</strong> One locks booking for 7 days. Three end it for good.</li>
+          </ul>
+        </div>
+
+        <div class="gate-card">
+          <div class="gate-switch" id="booking-switch">
+            <button type="button" data-gate-view="signup" aria-pressed="true">Sign up</button>
+            <button type="button" data-gate-view="login" aria-pressed="false">Log in</button>
+          </div>
+
+          <form id="signup-form" novalidate>
+            <div class="field">
+              <label for="signup-name">Full name</label>
+              <input id="signup-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="signup-name-error">
+              <p class="field-error" id="signup-name-error" hidden></p>
+            </div>
+            <div class="field-pair">
+              <div class="field">
+                <label for="signup-red-id">RedID</label>
+                <input id="signup-red-id" name="redId" type="text" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="9 digits" required aria-describedby="signup-red-id-error">
+                <p class="field-error" id="signup-red-id-error" hidden></p>
+              </div>
+              <div class="field">
+                <label for="signup-email">SDSU email</label>
+                <input id="signup-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@sdsu.edu" required aria-describedby="signup-email-error">
+                <p class="field-error" id="signup-email-error" hidden></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="signup-password">Password</label>
+              <div class="password-field">
+                <input id="signup-password" name="password" type="password" autocomplete="new-password" maxlength="128" required aria-describedby="signup-password-hint signup-password-error">
+                <button type="button" class="reveal" data-reveal="signup-password" aria-pressed="false">Show</button>
+              </div>
+              <p class="field-hint" id="signup-password-hint">At least 8 characters.</p>
+              <p class="field-error" id="signup-password-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="signup-confirm">Confirm password</label>
+              <input id="signup-confirm" name="confirm" type="password" autocomplete="new-password" maxlength="128" required aria-describedby="signup-confirm-error">
+              <p class="field-error" id="signup-confirm-error" hidden></p>
+            </div>
+            <div class="field">
+              <label class="check" for="signup-rules">
+                <input id="signup-rules" name="rules" type="checkbox" required aria-describedby="signup-rules-error">
+                <span>I'll follow the booking rules: one reservation a day, check in on time, and cancel if I can't make it.</span>
+              </label>
+              <p class="field-error" id="signup-rules-error" hidden></p>
+            </div>
+            <button class="btn btn-block" type="submit">Create account</button>
+            <p class="form-status" role="status" hidden></p>
+          </form>
+
+          <form id="login-form" novalidate hidden>
+            <div class="field">
+              <label for="login-email">SDSU email</label>
+              <input id="login-email" name="email" type="email" autocomplete="username" maxlength="254" required aria-describedby="login-email-error">
+              <p class="field-error" id="login-email-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <div class="password-field">
+                <input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required aria-describedby="login-password-error">
+                <button type="button" class="reveal" data-reveal="login-password" aria-pressed="false">Show</button>
+              </div>
+              <p class="field-error" id="login-password-error" hidden></p>
+            </div>
+            <button class="btn btn-block" type="submit">Log in</button>
+            <p class="form-status" role="status" hidden></p>
+          </form>
+
+          <form id="quiz-form" class="quiz" novalidate hidden>
+            <p class="quiz-intro">Answer all three to unlock booking. You can retake it as many times as you need.</p>
+            <div id="quiz-questions"></div>
+            <button class="btn btn-block" type="submit">Submit answers</button>
+            <p class="form-status" role="status" hidden></p>
+            <p class="demo-hint"><button type="button" class="link-button" data-action="logout">Log out</button></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- Signed in: the booking page -->
+      <div class="booker-app" id="booking-app" hidden>
+        <div class="booker-top">
+          <div class="booker-heading">
+            <h1 id="booking-title" tabindex="-1">Book a space</h1>
+            <p id="booking-subheading"></p>
+          </div>
+          <div class="search">
+            <label class="visually-hidden" for="booking-search">Search spaces</label>
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="booking-search" type="search" autocomplete="off" placeholder="Search: basketball, swim, tennis, Court 3" aria-describedby="booking-results">
+          </div>
+          <div class="booking-account">
+            <p>Signed in as <strong id="booking-user"></strong></p>
+            <button type="button" class="btn btn-sm btn-secondary" data-action="logout">Log out</button>
+          </div>
+        </div>
+
+        <div class="booker-days">
+          <span class="control-label" id="booking-days-label">Day</span>
+          <div class="day-picker" id="booking-days" role="group" aria-labelledby="booking-days-label"></div>
+        </div>
+
+        <div class="booker-body">
+          <aside class="booker-filters" aria-label="Filters">
+            <h2 class="panel-title" id="booking-venues-label">Facilities</h2>
+            <ul class="venue-list" id="booking-venues" aria-labelledby="booking-venues-label"></ul>
+
+            <h2 class="panel-title">Type of space</h2>
+            <div class="chips" id="booking-kinds" role="group" aria-label="Type of space"></div>
+
+            <label class="toggle" for="booking-open-only">
+              <input id="booking-open-only" type="checkbox">
+              <span>Only spaces with open times</span>
+            </label>
+
+            <h2 class="panel-title">Key</h2>
+            <ul class="legend">
+              <li><span class="swatch open"></span>Open, click to pick</li>
+              <li><span class="swatch picked"></span>Your pick</li>
+              <li><span class="swatch mine"></span>Your reservation</li>
+              <li><span class="swatch booked"></span>Taken</li>
+              <li><span class="swatch event"></span>Club event</li>
+              <li><span class="swatch walkup"></span>Walk-up, 11 am to 3 pm</li>
+              <li><span class="swatch closed"></span>Closed or over</li>
+            </ul>
+          </aside>
+
+          <section class="booker-main" aria-labelledby="booking-heading">
+            <div class="schedule-head">
+              <h2 id="booking-heading"></h2>
+              <p id="booking-results" aria-live="polite"></p>
+            </div>
+            <p class="board-notice" id="booking-note" hidden></p>
+
+            <div class="schedule">
+              <div class="schedule-times" id="booking-times" aria-hidden="true"></div>
+              <div id="booking-spaces"></div>
+              <div class="schedule-empty" id="booking-empty" hidden></div>
+            </div>
+          </section>
+
+          <aside class="booker-side" aria-label="Your booking">
+            <div class="pick" id="booking-pick" aria-live="polite"></div>
+            <div class="next-up" id="booking-next" hidden></div>
+            <div class="my-reservations">
+              <h2 class="panel-title" id="booking-mine-title" tabindex="-1">Your reservations</h2>
+              <p class="panel-note" id="booking-mine-empty">Nothing booked yet.</p>
+              <ul class="reservation-list" id="booking-mine"></ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="booking-dialog-title">
+      <div class="dialog-body">
+        <h3 id="booking-dialog-title"></h3>
+        <dl class="dialog-facts" id="booking-dialog-facts"></dl>
+        <p class="dialog-note" id="booking-dialog-note"></p>
+        <div class="dialog-actions">
+          <button type="button" class="btn" id="booking-dialog-confirm"></button>
+          <button type="button" class="btn btn-secondary" id="booking-dialog-dismiss"></button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast-region" id="booking-toast" role="status"></div>
+  </main>
+
+  <script src="js/main.js"></script>
+  <script src="js/facilities.js?v=6"></script>
+  <script src="js/booking.js?v=6"></script>
+</body>
+</html>
