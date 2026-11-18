@@ -197,6 +197,12 @@
     return (hour % 12 || 12) + (hour < 12 ? " am" : " pm");
   }
 
+  // "4:58 pm" for a Date
+  function formatTime(date) {
+    var hour = date.getHours();
+    return (hour % 12 || 12) + ":" + pad(date.getMinutes()) + (hour < 12 ? " am" : " pm");
+  }
+
   function formatSlot(slot) {
     return formatHour(slot) + " to " + formatHour(slot + SLOT_HOURS);
   }
@@ -403,6 +409,7 @@
         return fail("check-in-closed");
       }
       reservation.status = "checked-in";
+      reservation.checkInTime = new Date().toISOString(); // check_in_time column
       write(RESERVATIONS_KEY, all);
       return Promise.resolve(reservation);
     }
@@ -953,6 +960,9 @@
       what.appendChild(title);
       what.appendChild(el("span", "", formatDate(reservation.date) + ", " + formatSlot(reservation.slot)));
       what.appendChild(el("span", "", space.venue.name + " · " + space.venue.location));
+      if (status === "checked-in" && reservation.checkInTime) {
+        what.appendChild(el("span", "", "Checked in at " + formatTime(new Date(reservation.checkInTime))));
+      }
       item.appendChild(what);
 
       var actions = el("div", "actions");
