@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=6">
+  <link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -53,6 +53,8 @@
           <li><a href="#relationships">Relationships</a></li>
           <li><a href="#rules">Business rules</a></li>
           <li><a href="#implementation">Implementation</a></li>
+          <li><a href="#testing">Testing</a></li>
+          <li><a href="#limits">Limitations &amp; future work</a></li>
           <li><a href="#screens">Screenshots</a></li>
         </ul>
       </nav>
@@ -79,7 +81,7 @@
 
         <section id="schema">
           <h2>Schema</h2>
-          <p>Seven tables, matching the ER diagram above. Columns, types and keys come from the diagram; the CHECK and default rules are added in the DDL. Types are PostgreSQL.</p>
+          <p>Seven tables, matching the ER diagram above. Columns, types and keys come from the diagram, and the CHECK and default rules are added in the DDL. The design is written with standard SQL (PostgreSQL) types; the running database is Cloudflare D1, which uses SQLite types, so <a href="#types">Implementation</a> shows how each one maps. Two columns marked <em>added in implementation</em> aren't on the diagram.</p>
 
           <h3>users</h3>
           <div class="table-wrap"><table class="data">
@@ -89,6 +91,7 @@
               <tr><td><code>sdsu_red_id</code></td><td>VARCHAR(9)</td><td>Unique, 9 digits</td></tr>
               <tr><td><code>email</code></td><td>VARCHAR(255)</td><td>Not null, unique</td></tr>
               <tr><td><code>full_name</code></td><td>VARCHAR(120)</td><td>Not null</td></tr>
+              <tr><td><code>password_hash</code></td><td>VARCHAR(255)</td><td>Not null. PBKDF2 hash, never the password itself (added in implementation)</td></tr>
               <tr><td><code>role</code></td><td>VARCHAR(10)</td><td>student, club, admin; default student</td></tr>
               <tr><td><code>status</code></td><td>VARCHAR(10)</td><td>active, warned, banned; default active</td></tr>
               <tr><td><code>safety_quiz_passed</code></td><td>BOOLEAN</td><td>Not null, default false</td></tr>
@@ -103,6 +106,7 @@
             <thead><tr><th scope="col">Column</th><th scope="col">Type</th><th scope="col">Constraints</th></tr></thead>
             <tbody>
               <tr><td><code>facility_id</code></td><td>SERIAL</td><td>Primary key</td></tr>
+              <tr><td><code>code</code></td><td>VARCHAR(40)</td><td>Not null, unique. The space ID the booking page uses, such as <code>arc-court-1</code> (added in implementation)</td></tr>
               <tr><td><code>name</code></td><td>VARCHAR(100)</td><td>Not null</td></tr>
               <tr><td><code>type</code></td><td>VARCHAR(20)</td><td>court, field, pool, gym, studio, other</td></tr>
               <tr><td><code>location_area</code></td><td>VARCHAR(100)</td><td></td></tr>
@@ -191,24 +195,193 @@
           <ul>
             <li><strong>One reservation per student per day.</strong> A unique index on (<code>user_id</code>, the date of <code>start_time</code>) for active reservations.</li>
             <li><strong>Bookable hours and capacity.</strong> A booking must fall inside a <code>facility_schedules</code> window, and overlapping active reservations can't exceed the facility's <code>capacity</code>. Outside the windows, spaces are first come, first served.</li>
-            <li><strong>No-show penalties.</strong> A reservation not checked in becomes <code>no-show</code>, which adds a <code>penalties</code> row and increments <code>no_show_count</code>. One no-show sets the user to <code>warned</code> and fills <code>suspended_until</code>; three set them to <code>banned</code>.</li>
+            <li><strong>Check-in window.</strong> A student checks in from 15 minutes before the slot until it ends, which fills <code>check_in_time</code>.</li>
+            <li><strong>No-show penalties.</strong> A reservation not checked in by the end of its slot becomes <code>no-show</code>, which adds a <code>penalties</code> row and recounts <code>no_show_count</code>. One no-show sets the user to <code>warned</code> and locks them out of reserving for 7 days through <code>suspended_until</code>; three set them to <code>banned</code>.</li>
+            <li><strong>Club events.</strong> A space can't be reserved during a club or organization event held there.</li>
             <li><strong>Safety quiz.</strong> A user must have <code>safety_quiz_passed</code> before booking.</li>
           </ul>
         </section>
 
         <section id="implementation">
           <h2>Implementation</h2>
-          <div class="todo">
-            <p><strong>[TODO: implementation write-up]</strong> The detailed write-up goes here. Suggested sections:</p>
-            <ul>
-              <li>DBMS and tools used, and why</li>
-              <li>DDL for each table, including keys, constraints and indexes</li>
-              <li>How the booking rules are enforced (constraints, triggers or application logic)</li>
-              <li>Key queries: available slots, a user's reservations, no-show processing, the events feed</li>
-              <li>Sample data and test cases</li>
-              <li>Known limitations and future work</li>
-            </ul>
-          </div>
+          <p>CourtConnect runs as three pieces: the website on GitHub Pages, an API on Cloudflare Workers, and a Cloudflare D1 database behind the API. The source is in the <a href="https://github.com/Hmitchell48/CS-514-Project">GitHub repository</a>: <code>api/schema.sql</code> for the DDL, <code>api/src/index.js</code> for the API and its queries, and <code>api/scripts/build-seed.mjs</code> for the sample data.</p>
+
+          <h3>DBMS and tools</h3>
+          <ul>
+            <li><strong>Cloudflare D1</strong> is the database. It is SQLite run by Cloudflare, so it supports the constraints, indexes, joins and subqueries the design needs, with no database server for us to install or maintain.</li>
+            <li><strong>Cloudflare Workers</strong> hosts the API, written in JavaScript. The browser never talks to the database directly: every request goes through the Worker, which checks who is signed in and applies the booking rules.</li>
+            <li><strong>Wrangler</strong>, Cloudflare's command-line tool, creates the database, runs the schema and seed files, and deploys the Worker.</li>
+            <li><strong>GitHub Pages</strong> hosts the website: plain HTML, CSS and JavaScript with no build step.</li>
+          </ul>
+          <p>We chose this setup because it is free at our scale, needs no server of our own, and keeps the website on GitHub Pages where it already was. One file, <code>js/facilities.js</code>, holds the facility list, hours, slot times and penalty rules, and the booking page, the API and the seed script all read it, so the three can't disagree about the rules.</p>
+
+          <h3>How a booking moves through the system</h3>
+          <ol>
+            <li>The student signs in on the booking page. The API checks the password against the stored hash and returns a signed log-in token.</li>
+            <li>To show the schedule, the page asks the API for one day. The API counts that day's reservations per slot and returns the counts along with any club events.</li>
+            <li>When the student reserves a slot, the page sends the space, date and time with the token. The API checks the rules and inserts the reservation, or returns an error code that the page turns into a message.</li>
+            <li>At the court, the student checks in, which fills <code>check_in_time</code>. A booking that ends without one is marked as a no-show the next time that student uses the app.</li>
+          </ol>
+
+          <h3 id="types">From the design to SQLite</h3>
+          <p>SQLite has fewer column types than PostgreSQL, so the schema maps them like this. The CHECK constraints keep the same limits the design's types would.</p>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Design type</th><th scope="col">In D1 (SQLite)</th><th scope="col">Notes</th></tr></thead>
+            <tbody>
+              <tr><td>SERIAL</td><td><code>INTEGER PRIMARY KEY AUTOINCREMENT</code></td><td>IDs are never reused.</td></tr>
+              <tr><td>VARCHAR(n)</td><td><code>TEXT</code></td><td>Lengths are checked by the API; allowed values by CHECK constraints.</td></tr>
+              <tr><td>TIMESTAMP</td><td><code>TEXT</code> as <code>YYYY-MM-DD HH:MM</code></td><td>San Diego local time, so times sort and compare correctly as plain text.</td></tr>
+              <tr><td>TIME</td><td><code>TEXT</code> as <code>HH:MM</code></td><td>Used for the bookable windows.</td></tr>
+              <tr><td>BOOLEAN</td><td><code>INTEGER</code> 0 or 1</td><td>With <code>CHECK (x IN (0, 1))</code>.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>DDL</h3>
+          <p>The full DDL for all seven tables is in <code>api/schema.sql</code>. The reservations table carries most of the rules:</p>
+<pre><code>CREATE TABLE reservations (
+  reservation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id        INTEGER NOT NULL REFERENCES users (user_id),
+  facility_id    INTEGER NOT NULL REFERENCES facilities (facility_id),
+  start_time     TEXT    NOT NULL,
+  end_time       TEXT    NOT NULL,
+  check_in_time  TEXT,
+  status         TEXT    NOT NULL DEFAULT 'booked'
+                 CHECK (status IN ('booked', 'checked-in', 'no-show', 'cancelled')),
+  created_at     TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M', 'now')),
+  CHECK (end_time &gt; start_time)
+);
+
+-- One reservation per student per day. Cancelling frees the day up;
+-- a no-show still uses it.
+CREATE UNIQUE INDEX reservations_one_per_day
+  ON reservations (user_id, date(start_time))
+  WHERE status &lt;&gt; 'cancelled';
+
+-- Counting who holds a slot (the capacity check and the day view).
+CREATE INDEX reservations_slot ON reservations (facility_id, start_time);</code></pre>
+          <p>Other constraints: <code>users.email</code> and <code>users.sdsu_red_id</code> are unique, and the RedID must be exactly 9 digits; <code>users.role</code> and <code>users.status</code> only allow their listed values; <code>facilities.capacity</code> must be greater than 0; <code>facility_schedules</code> requires <code>bookable_end &gt; bookable_start</code> and a weekday from 0 to 6; and <code>events.reservation_id</code> is unique, so each event has exactly one reservation. Deleting a facility deletes its schedule windows (<code>ON DELETE CASCADE</code>), and deleting a reservation deletes its event.</p>
+
+          <h3>Enforcing the booking rules</h3>
+          <p>Each rule is enforced in the database where SQL can express it, and in the API's queries otherwise. The booking page also checks most of them so it can explain a problem before sending anything, but it is never the only check.</p>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Rule</th><th scope="col">Where</th><th scope="col">How</th></tr></thead>
+            <tbody>
+              <tr><td>One reservation per day</td><td>Database and API</td><td>The <code>reservations_one_per_day</code> unique index. The API checks first so it can return a clear message, and the index still blocks two requests that arrive at the same moment.</td></tr>
+              <tr><td>Capacity</td><td>API, in one SQL statement</td><td>The insert only happens while fewer than <code>capacity</code> active reservations hold that slot (see below). Checking and inserting in one statement means two students can't both take the last spot.</td></tr>
+              <tr><td>Bookable hours and walk-up time</td><td>API</td><td>The slot must fall inside a <code>facility_schedules</code> window for that weekday. The 11 am to 3 pm walk-up block has no windows, so it can't be booked.</td></tr>
+              <tr><td>Up to 7 days ahead, not in the past</td><td>API</td><td>Compares the requested date and start time with the current San Diego time.</td></tr>
+              <tr><td>No booking during club events</td><td>API</td><td>Rejects the slot if it overlaps a reservation that has a row in <code>events</code>.</td></tr>
+              <tr><td>Safety quiz</td><td>API</td><td>The quiz answers are checked on the server; a pass sets <code>safety_quiz_passed = 1</code>, which reserving requires.</td></tr>
+              <tr><td>Check-in window</td><td>API, in the UPDATE</td><td>The update only matches a booked reservation of that student whose slot starts within 15 minutes or has started, and hasn't ended.</td></tr>
+              <tr><td>Cancel only before the slot starts</td><td>API, in the UPDATE</td><td>The update only matches the student's own booked reservation with <code>start_time</code> still in the future.</td></tr>
+              <tr><td>No-shows, lockouts and bans</td><td>API, in one transaction</td><td>See no-show processing below.</td></tr>
+              <tr><td>Allowed values, valid times, positive capacity</td><td>Database</td><td>CHECK constraints on every table.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Key queries</h3>
+          <p><strong>A day's schedule.</strong> One query returns every active reservation that day, with the club name when it belongs to an event. The API then counts students per slot and lists event slots separately, which is what the schedule colors show.</p>
+<pre><code>SELECT f.code, r.start_time, r.end_time, o.name AS org
+FROM reservations r
+JOIN facilities f ON f.facility_id = r.facility_id
+LEFT JOIN events e ON e.reservation_id = r.reservation_id
+LEFT JOIN organizations o ON o.org_id = e.org_id
+WHERE r.status &lt;&gt; 'cancelled' AND r.start_time &gt;= ?1 AND r.start_time &lt; ?2</code></pre>
+
+          <p><strong>Reserving a slot.</strong> The capacity check and the insert are one statement. If the slot is full, the <code>SELECT</code> returns no row, nothing is inserted, and the API reports that the slot was taken.</p>
+<pre><code>INSERT INTO reservations (user_id, facility_id, start_time, end_time, status, created_at)
+SELECT ?1, ?2, ?3, ?4, 'booked', ?5
+WHERE (SELECT COUNT(*) FROM reservations
+       WHERE facility_id = ?2 AND start_time = ?3 AND status &lt;&gt; 'cancelled')
+    &lt; (SELECT capacity FROM facilities WHERE facility_id = ?2)
+RETURNING reservation_id</code></pre>
+
+          <p><strong>A student's reservations.</strong> The student's bookings from the past 7 days onward, excluding cancelled ones and club event bookings, ordered by start time. This feeds "Your reservations" and the check-in card.</p>
+
+          <p><strong>Checking in.</strong> A single update that only succeeds inside the window:</p>
+<pre><code>UPDATE reservations SET status = 'checked-in', check_in_time = ?1
+WHERE reservation_id = ?2 AND user_id = ?3 AND status = 'booked'
+  AND start_time &lt;= ?4   -- now + 15 minutes
+  AND end_time &gt; ?1      -- the slot hasn't ended
+RETURNING reservation_id</code></pre>
+
+          <p><strong>No-show processing.</strong> There's no background job. Whenever a student loads their reservations or tries to book, the API finds their booked reservations whose slot has already ended, then runs these statements together as one D1 batch, which commits all of them or none:</p>
+          <ol>
+            <li>Set each one's status to <code>no-show</code>.</li>
+            <li>Insert a <code>penalties</code> row for it, skipped if one already exists for that reservation, so a no-show is never counted twice.</li>
+            <li>Recount the student's no-show penalties into <code>no_show_count</code>. At 3 or more, set <code>status</code> to <code>banned</code>; otherwise set it to <code>warned</code> and set <code>suspended_until</code> to 7 days from now.</li>
+          </ol>
+          <p>Reserving then refuses a banned student, or one whose <code>suspended_until</code> hasn't passed.</p>
+
+          <h3>Security</h3>
+          <ul>
+            <li>Passwords are hashed with PBKDF2-SHA256 (100,000 iterations and a random salt per user). The plain password is never stored.</li>
+            <li>Every request that reads or changes reservations needs a log-in token signed with a secret kept in Cloudflare, not in the code. The API takes the student from the token, never from the request, and every update also matches <code>user_id</code>, so one student can't see, cancel or check in another's booking.</li>
+            <li>Every query uses bound parameters (the <code>?</code> placeholders above), never text pasted into SQL, which prevents SQL injection.</li>
+            <li>Sign-up and log-in are limited to 10 attempts per minute per IP address, and errors return a short code, never database details.</li>
+          </ul>
+
+          <h3>Sample data</h3>
+          <p><code>api/scripts/build-seed.mjs</code> writes the sample data from <code>js/facilities.js</code>. A typical run creates 47 facilities across 6 venues with 390 weekly bookable windows, 56 users (two demo log-ins plus sample students and club contacts), 4 organizations, 20 club events, about 500 reservations over the past and coming week, and the penalties for the sample no-shows. Dates are relative to the day the seed runs, so the schedule always has realistic activity, and a seeded random generator makes the same day produce the same bookings every time. Only the demo accounts can log in; every other seeded account gets a random password.</p>
+        </section>
+
+        <section id="testing">
+          <h2>Testing</h2>
+          <p>The test script <code>api/test/api-test.mjs</code> runs the real API code against the real <code>schema.sql</code> and seed data, in a local SQLite database that stands in for D1. It moves the clock forward to test check-in windows and no-shows, and inserts rows directly with SQL to show the database constraints hold even without the API. Anyone can rerun it with <code>npm test</code> in the <code>api</code> folder (Node 22 or later, no Cloudflare account needed).</p>
+          <p>All 36 tests pass. The log-in rate limit is a Cloudflare feature, so it isn't covered locally.</p>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th scope="col">Area</th><th scope="col">Scenario</th><th scope="col">Expected</th><th scope="col">Result</th></tr></thead>
+            <tbody>
+              <tr><td>Accounts</td><td>Sign up with a valid RedID and @sdsu.edu email</td><td>200, account created, quiz not passed</td><td>Pass: 200, quizPassed=false</td></tr>
+              <tr><td>Accounts</td><td>Password is stored hashed, not as plain text</td><td>pbkdf2$100000$… hash</td><td>Pass: pbkdf2$100000$…</td></tr>
+              <tr><td>Accounts</td><td>Sign up again with an email already in use</td><td>409 email-taken</td><td>Pass: 409 email-taken</td></tr>
+              <tr><td>Accounts</td><td>Sign up with an 8-digit RedID</td><td>400 bad-request</td><td>Pass: 400 bad-request</td></tr>
+              <tr><td>Accounts</td><td>Sign up with a non-SDSU email</td><td>400 bad-request</td><td>Pass: 400 bad-request</td></tr>
+              <tr><td>Accounts</td><td>Log in with the wrong password</td><td>401 bad-credentials</td><td>Pass: 401 bad-credentials</td></tr>
+              <tr><td>Security</td><td>Log in with SQL injection text in both fields</td><td>401 bad-credentials (bound parameters)</td><td>Pass: 401 bad-credentials</td></tr>
+              <tr><td>Security</td><td>List reservations without a token</td><td>401 signed-out</td><td>Pass: 401 signed-out</td></tr>
+              <tr><td>Security</td><td>Change the user ID inside a token</td><td>401 signed-out (signature no longer matches)</td><td>Pass: 401 signed-out</td></tr>
+              <tr><td>Safety quiz</td><td>Reserve before passing the quiz</td><td>403 quiz-required</td><td>Pass: 403 quiz-required</td></tr>
+              <tr><td>Safety quiz</td><td>Submit the quiz with wrong answers</td><td>400 quiz-failed, lists the wrong questions</td><td>Pass: 400 quiz-failed [0,1,2]</td></tr>
+              <tr><td>Safety quiz</td><td>Submit the quiz with correct answers</td><td>200, safety_quiz_passed = 1</td><td>Pass: 200, db=1</td></tr>
+              <tr><td>Reserving</td><td>Reserve an open slot inside a reservation window</td><td>200, status booked</td><td>Pass: 200, booked</td></tr>
+              <tr><td>Reserving</td><td>Reserve a second slot on the same day</td><td>409 daily-limit</td><td>Pass: 409 daily-limit</td></tr>
+              <tr><td>Reserving</td><td>Reserve an 11 am walk-up slot</td><td>400 not-reservable</td><td>Pass: 400 not-reservable</td></tr>
+              <tr><td>Reserving</td><td>Reserve a slot yesterday</td><td>400 not-reservable</td><td>Pass: 400 not-reservable</td></tr>
+              <tr><td>Reserving</td><td>Reserve more than 7 days ahead</td><td>400 not-reservable</td><td>Pass: 400 not-reservable</td></tr>
+              <tr><td>Reserving</td><td>Reserve a space that doesn&#x27;t exist</td><td>400 not-reservable</td><td>Pass: 400 not-reservable</td></tr>
+              <tr><td>Reserving</td><td>Second student reserves the same 1-person slot</td><td>409 slot-taken</td><td>Pass: 409 slot-taken</td></tr>
+              <tr><td>Reserving</td><td>Reserve a slot during a club event</td><td>400 not-reservable</td><td>Pass: 400 not-reservable</td></tr>
+              <tr><td>Security</td><td>Student B cancels student A&#x27;s reservation</td><td>409 too-late (row not touched)</td><td>Pass: 409 too-late, A&#x27;s status=booked</td></tr>
+              <tr><td>Cancelling</td><td>Cancel your own booking before it starts</td><td>200, status cancelled</td><td>Pass: 200, cancelled</td></tr>
+              <tr><td>Cancelling</td><td>Book a different slot that day after cancelling</td><td>200 booked (cancelled booking frees the day)</td><td>Pass: 200, booked</td></tr>
+              <tr><td>Check-in</td><td>Check in 60 minutes before the slot</td><td>409 check-in-closed</td><td>Pass: 409 check-in-closed</td></tr>
+              <tr><td>Check-in</td><td>Check in 10 minutes before the slot</td><td>200, checked-in, check_in_time saved</td><td>Pass: 200, checked-in at 2026-11-18T08:50</td></tr>
+              <tr><td>Cancelling</td><td>Cancel a booking you already checked in to</td><td>409 too-late</td><td>Pass: 409 too-late</td></tr>
+              <tr><td>No-shows</td><td>Slot ends without a check-in, then the student opens the app</td><td>status no-show, 1 penalty, user warned, locked out 7 days</td><td>Pass: no-show, penalties=1, warned, until 2026-11-26 17:05</td></tr>
+              <tr><td>No-shows</td><td>Student with an active lockout tries to reserve</td><td>403 suspended</td><td>Pass: 403 suspended</td></tr>
+              <tr><td>No-shows</td><td>Open the app again (no-show already processed)</td><td>still 1 penalty (no duplicates)</td><td>Pass: penalties=1</td></tr>
+              <tr><td>No-shows</td><td>Three missed bookings</td><td>no_show_count 3, user banned</td><td>Pass: no_show_count=3, banned</td></tr>
+              <tr><td>No-shows</td><td>Banned student tries to reserve</td><td>403 banned</td><td>Pass: 403 banned</td></tr>
+              <tr><td>Constraints</td><td>INSERT a second active reservation for the same student and day</td><td>rejected by reservations_one_per_day</td><td>Pass: Rejected: UNIQUE index reservations_one_per_day</td></tr>
+              <tr><td>Constraints</td><td>INSERT a reservation that ends before it starts</td><td>rejected by CHECK (end_time &gt; start_time)</td><td>Pass: Rejected: CHECK constraint failed</td></tr>
+              <tr><td>Constraints</td><td>INSERT a reservation with an unknown status</td><td>rejected by CHECK on status</td><td>Pass: Rejected: CHECK constraint failed</td></tr>
+              <tr><td>Constraints</td><td>INSERT a user whose RedID has letters</td><td>rejected by CHECK on sdsu_red_id</td><td>Pass: Rejected: CHECK constraint failed</td></tr>
+              <tr><td>Constraints</td><td>INSERT a facility with capacity 0</td><td>rejected by CHECK (capacity &gt; 0)</td><td>Pass: Rejected: CHECK constraint failed</td></tr>
+            </tbody>
+          </table></div>
+        </section>
+
+        <section id="limits">
+          <h2>Limitations &amp; future work</h2>
+          <ul>
+            <li><strong>Fixed 2-hour slots.</strong> Every space uses the same 2-hour slots. Shorter sessions often make more sense, for example 1 hour for pool lanes and weight areas. That would mean a slot length per facility in <code>js/facilities.js</code>; the database already stores exact start and end times, so the tables wouldn't change.</li>
+            <li><strong>No admin or club screens yet.</strong> Club events and organizations come from the seed data. A club view for posting events and an admin view for managing facilities, lifting bans and reviewing penalties are next.</li>
+            <li><strong>No-shows are processed when the student returns.</strong> A missed booking becomes a no-show the next time that student opens the app, which is enough to enforce the rules but leaves reports out of date until then. A scheduled Worker could process them every hour.</li>
+            <li><strong>Email isn't verified.</strong> Anyone can sign up with an @sdsu.edu address or RedID that isn't taken yet. Production would verify the email or use SDSU single sign-on.</li>
+            <li><strong>Log-out doesn't end the token.</strong> Log-in tokens last 7 days, and logging out only clears the browser. Ending every session means changing the signing secret.</li>
+            <li><strong>Capacity counts slots that start together.</strong> This is exact because every booking uses the same slot grid. If slot lengths ever vary, the check should count overlapping times instead of matching start times.</li>
+          </ul>
         </section>
 
         <section id="screens">

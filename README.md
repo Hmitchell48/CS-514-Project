@@ -28,6 +28,7 @@ api/
   scripts/build-seed.mjs  writes seed.sql: facilities, demo accounts, sample bookings and club events
   src/index.js            the Worker: sign-up, log-in, day view, reserve, cancel, check in
   wrangler.toml           Worker name, D1 binding, allowed origins
+  test/api-test.mjs       tests the API and database rules (npm test, Node 22+)
 ```
 
 All data access in the page goes through the `api` object in `js/booking.js`. The facility list, hours, slot length and reservation windows are in `js/facilities.js`. After changing them, re-run the seed so the database matches.
@@ -101,8 +102,8 @@ The repo is public, so nothing in it may grant access to anything.
 
 - Search for `[TODO` to find content that still needs writing.
 - Image spots that still need a picture are `<div class="placeholder">` boxes. Swap one for an `<img>` and put the file in `images/`. Name headshots `first-last.jpg` and use `class="headshot"`.
-- Every page loads `css/styles.css?v=4`. After changing the stylesheet, bump the number in all seven pages so browsers don't keep the old copy.
-- The header and footer are copied into every page. If you change the nav, change it in all seven files.
+- Every page loads `css/styles.css?v=7`. After changing the stylesheet, bump the number in all eight pages so browsers don't keep the old copy.
+- The header and footer are copied into every page. If you change the nav, change it in all eight files.
 - The technical PDF link expects `docs/CourtConnect-Technical.pdf`.
 
 ## Viewing

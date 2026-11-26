@@ -1076,6 +1076,28 @@ table.data thead th {
 }
 table.data code { font-size: 0.9em; }
 
+/* Code blocks and inline code on the document pages */
+/* Lets wide code blocks and tables scroll inside the page instead of widening it. */
+.page-body > .content { min-width: 0; }
+.content pre {
+  margin: var(--s-2) 0 var(--s-3);
+  padding: var(--s-2) 1.25rem;
+  overflow-x: auto;
+  background: var(--ink);
+  color: #e8eeeb;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.content pre code { font-size: inherit; color: inherit; }
+.content p code,
+.content li code {
+  padding: 0.05rem 0.3rem;
+  background: rgba(21, 35, 45, 0.07);
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
 /* Schema entity cards */
 .schema {
   display: grid;

@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "seed:build": "node scripts/build-seed.mjs",
+    "test": "node scripts/build-seed.mjs && node --no-warnings test/api-test.mjs",
     "db:schema:local": "wrangler d1 execute courtconnect --local --file=schema.sql",
     "db:seed:local": "node scripts/build-seed.mjs && wrangler d1 execute courtconnect --local --file=seed.sql",
     "db:schema:remote": "wrangler d1 execute courtconnect --remote --file=schema.sql",
